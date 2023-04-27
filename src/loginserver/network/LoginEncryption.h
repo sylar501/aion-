@@ -1,0 +1,9 @@
+#ifndef AION_LOGINSERVER_NETWORK_LOGINENCRYPTION_H
+#define AION_LOGINSERVER_NETWORK_LOGINENCRYPTION_H
+
+class LoginEncryption
+{
+
+};
+
+#endif
