@@ -16,6 +16,7 @@ namespace shared
 		void						Stop();
 
 		void						SetConnectionPrototype(TCPConnection* pConnectionPrototype);
+		asio::ip::tcp::socket&		GetSocket();
 
 	private:
 		void						BeginAccept();

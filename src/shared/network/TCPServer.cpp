@@ -36,6 +36,11 @@ namespace shared
 		m_pConnectionPrototype = pConnectionPrototype;
 	}
 
+	asio::ip::tcp::socket& TCPServer::GetSocket()
+	{
+		return m_oClientSocket;
+	}
+
 	void TCPServer::BeginAccept()
 	{
 		m_oAcceptor.async_accept(m_oClientSocket, [this](std::error_code ec)

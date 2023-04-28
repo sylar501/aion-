@@ -9,6 +9,8 @@ int main(int argc, char* argv[])
 {
 	printf("AION Login Server\n");
 
+	srand((uint32_t)time(NULL));
+
 	try
 	{
 		shared::ASIOThreadPool::GetInstance()->SetThreadCount(4);

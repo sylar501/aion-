@@ -4,6 +4,7 @@
 #include <shared/network/TCPConnection.h>
 
 #include "LoginEncryption.h"
+#include "RSAKeyPair.h"
 
 class LoginConnection : public shared::TCPConnection
 {
@@ -15,7 +16,8 @@ public:
 
 	void				OnBytesReceived(uint8_t* aBuffer, size_t u64BytesReceived);
 private:
-	LoginEncryption		m_encryption;
+	LoginEncryption		m_oEncryption;
+	RSAKeyPair			m_oRSAKeyPair;
 };
 
 #endif

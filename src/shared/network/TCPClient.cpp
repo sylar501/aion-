@@ -39,6 +39,8 @@ namespace shared
 	{
 		m_pConnection = pConnection;
 
+		m_pConnection->SetTCPClient(shared_from_this());
+
 		pConnection->OnConnect();
 
 		BeginRead();

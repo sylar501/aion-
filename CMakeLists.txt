@@ -7,6 +7,7 @@ endif()
 
 include_directories("include")
 include_directories("3rdparty/asio-1.26.0/include")
+include_directories("3rdparty/openssl/include")
 
 file(GLOB_RECURSE shared_SRC CONFIGURE_DEPENDS "include/shared/**.h" "src/shared/**.cpp")
 add_library(shared STATIC ${shared_SRC})
@@ -14,4 +15,4 @@ add_library(shared STATIC ${shared_SRC})
 file(GLOB_RECURSE loginserver_SRC CONFIGURE_DEPENDS "src/loginserver/**.h" "src/loginserver/**.cpp")
 add_executable(loginserver ${loginserver_SRC})
 add_dependencies(loginserver shared)
-target_link_libraries(loginserver shared)
+target_link_libraries(loginserver shared "${CMAKE_SOURCE_DIR}/3rdparty/openssl/lib/libeay32.lib")
