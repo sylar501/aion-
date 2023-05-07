@@ -57,8 +57,9 @@ size_t LoginEncryption::Encrypt(uint8_t* aBuffer, size_t u64Length)
 		aBuffer[pos++] = ecx >> 16 & 0xff;
 		aBuffer[pos++] = ecx >> 24 & 0xff;
 
-		// TODO blowfish cipher
 		m_oBlowfish.Cipher(aBuffer, u64Length);
+
+		m_oBlowfish.SetKey(m_aBlowfishKey);
 
 		printf("After Encrypt: %llu\n", u64Length);
 
@@ -66,7 +67,33 @@ size_t LoginEncryption::Encrypt(uint8_t* aBuffer, size_t u64Length)
 	}
 	else
 	{
+		u64Length += 8 - u64Length % 8;
 
+		int64_t chksum = 0;
+		int32_t count = u64Length - 4;
+		int64_t ecx;
+		int i;
+
+		for (i = 0; i < count; i += 4)
+		{
+			ecx = aBuffer[i] & 0xff;
+			ecx |= aBuffer[i + 1] << 8 & 0xff00;
+			ecx |= aBuffer[i + 2] << 0x10 & 0xff0000;
+			ecx |= aBuffer[i + 3] << 0x18 & 0xff000000;
+			chksum ^= ecx;
+		}
+
+		ecx = aBuffer[i] & 0xff;
+		ecx |= aBuffer[i + 1] << 8 & 0xff00;
+		ecx |= aBuffer[i + 2] << 0x10 & 0xff0000;
+		ecx |= aBuffer[i + 3] << 0x18 & 0xff000000;
+
+		aBuffer[i] = chksum & 0xff;
+		aBuffer[i + 1] = chksum >> 0x08 & 0xff;
+		aBuffer[i + 2] = chksum >> 0x10 & 0xff;
+		aBuffer[i + 3] = chksum >> 0x18 & 0xff;
+
+		m_oBlowfish.Cipher(aBuffer, u64Length);
 	}
 
 	return u64Length;

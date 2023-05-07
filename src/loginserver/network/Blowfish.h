@@ -10,7 +10,7 @@ public:
 
 	void Cipher(uint8_t* aBuffer, size_t u64Length);
 
-private:
+public:
 	void initArrays();
 	void initSBox(uint8_t* aBase, int* aSBox);
 

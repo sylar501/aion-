@@ -25,6 +25,8 @@ namespace shared
 				// Forward to Connection Object.
 				printf("Received %llu bytes\n", u64BytesReceived);
 
+				m_pConnection->OnBytesReceived(m_aReceiveBuffer, u64BytesReceived);
+
 				BeginRead();
 			}
 		});

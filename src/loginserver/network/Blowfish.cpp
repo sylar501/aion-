@@ -1,6 +1,7 @@
 #include "Blowfish.h"
 
 #include <string.h>
+#include <stdio.h>
 
 int PARRAY_INIT[18] = 
 { 
@@ -133,10 +134,10 @@ void Blowfish::SetKey(uint8_t* aKey)
 {
     memcpy(m_aKey, aKey, 16);
 
-    memcpy(m_sBoxes[0], SBOX_INIT_0, 256);
-    memcpy(m_sBoxes[1], SBOX_INIT_1, 256);
-    memcpy(m_sBoxes[2], SBOX_INIT_2, 256);
-    memcpy(m_sBoxes[3], SBOX_INIT_3, 256);
+    memcpy(m_sBoxes[0], SBOX_INIT_0, 1024);
+    memcpy(m_sBoxes[1], SBOX_INIT_1, 1024);
+    memcpy(m_sBoxes[2], SBOX_INIT_2, 1024);
+    memcpy(m_sBoxes[3], SBOX_INIT_3, 1024);
 
     initArrays();
 }
@@ -150,8 +151,8 @@ void Blowfish::Cipher(uint8_t* aBuffer, size_t u64Length)
     {
         p = k << 3;
 
-        int xl = byteArrayToInteger(aBuffer);
-        int xr = byteArrayToInteger(aBuffer + 4);
+        int xl = byteArrayToInteger(aBuffer + p);
+        int xr = byteArrayToInteger(aBuffer + p + 4);
         int tmp;
 
         for (int i = 0; i < 16; i++)
@@ -169,8 +170,8 @@ void Blowfish::Cipher(uint8_t* aBuffer, size_t u64Length)
         xr ^= m_pArray[16];
         xl ^= m_pArray[17];
 
-        integerToByteArray(xl, aBuffer);
-        integerToByteArray(xr, aBuffer + 4);
+        integerToByteArray(xl, aBuffer + p);
+        integerToByteArray(xr, aBuffer + p + 4);
     }
 }
 
@@ -212,7 +213,7 @@ void Blowfish::initArrays()
 
 void Blowfish::initSBox(uint8_t* aBase, int* aSBox)
 {
-    for (int j = 0; j < 256; j++)
+    for (int j = 0; j < 256; j += 2)
     {
         Cipher(aBase, 8);
         aSBox[j] = byteArrayToInteger(aBase);
@@ -222,7 +223,7 @@ void Blowfish::initSBox(uint8_t* aBase, int* aSBox)
 
 int Blowfish::byteArrayToInteger(uint8_t* aData)
 {
-    return aData[3] << 24 | aData[2] << 16 | aData[1] << 8 | aData[0];
+    return (aData[3] & 0xFF) << 24 | (aData[2] & 0xFF) << 16 | (aData[1] & 0xFF) << 8 | (aData[0] & 0xFF);
 }
 
 void Blowfish::integerToByteArray(int i32Value, uint8_t* aData)

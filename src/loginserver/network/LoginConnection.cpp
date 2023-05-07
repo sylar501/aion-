@@ -56,4 +56,12 @@ void LoginConnection::OnDisconnect()
 void LoginConnection::OnBytesReceived(uint8_t* aBuffer, size_t u64BytesReceived)
 {
 	printf("Received %llu bytes\n", u64BytesReceived);
+
+	Buffer recvPacket;
+	recvPacket.Append(aBuffer, u64BytesReceived);
+	recvPacket.SetReadPosition(0);
+
+	uint16_t u16PacketSize = recvPacket.ReadUInt16();
+
+	printf("Packet Size: %u\n", u16PacketSize);
 }

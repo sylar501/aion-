@@ -14,5 +14,6 @@ add_library(shared STATIC ${shared_SRC})
 
 file(GLOB_RECURSE loginserver_SRC CONFIGURE_DEPENDS "src/loginserver/**.h" "src/loginserver/**.cpp")
 add_executable(loginserver ${loginserver_SRC})
+target_compile_options(loginserver PRIVATE /W4)
 add_dependencies(loginserver shared)
 target_link_libraries(loginserver shared "${CMAKE_SOURCE_DIR}/3rdparty/openssl/lib/libeay32.lib")
