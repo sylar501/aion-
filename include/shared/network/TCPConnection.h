@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <memory>
 
+#include <shared/network/Buffer.h>
+
 namespace shared
 {
 	class TCPClient;
@@ -15,13 +17,18 @@ namespace shared
 
 		void						SetTCPClient(std::shared_ptr<TCPClient> spTCPClient);
 
-		virtual void				OnConnect() {}
-		virtual void				OnDisconnect() {}
+		virtual void				OnConnect();
+		virtual void				OnDisconnect();
 
-		virtual void				OnBytesReceived(uint8_t* /* aBuffer */, size_t /* u64BytesReceived */) {}
+		void						CloseConnection();
+
+		void						OnBytesReceived(uint8_t* aBuffer, size_t u64BytesReceived);
+
+		virtual void				OnPacketReceived(Buffer& rBuffer) = 0;
 
 	protected:
 		std::shared_ptr<TCPClient>	m_spTCPClient;
+		Buffer						m_oReceiveBuffer;
 	};
 }
 

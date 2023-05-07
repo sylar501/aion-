@@ -45,3 +45,8 @@ uint8_t* RSAKeyPair::GetEncryptedModulus()
 {
 	return m_aEncrytedModulus;
 }
+
+RSA* RSAKeyPair::GetRSA()
+{
+	return m_pRSA;
+}

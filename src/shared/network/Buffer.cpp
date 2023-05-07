@@ -31,6 +31,11 @@ void Buffer::Resize(uint32_t size)
     m_data.resize(size);
 }
 
+Buffer::Buffer()
+{
+    WriteUInt16(0x00); // Placeholder for size.
+}
+
 void Buffer::Append(uint8_t* data, uint32_t len)
 {
     if (data && len > 0)

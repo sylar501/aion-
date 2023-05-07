@@ -1,4 +1,5 @@
 #include <shared/network/TCPServer.h>
+#include <shared/utilities/Logger.h>
 
 namespace shared
 {
@@ -47,7 +48,7 @@ namespace shared
 		{
 			if (ec)
 			{
-				// LOG ERROR
+				sLogger.Error("TCPServer(0x%x)::async_accept > %s", this, ec.message().c_str());
 			}
 			else
 			{

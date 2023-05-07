@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <iostream>
 
+#include <shared/utilities/Logger.h>
 #include <shared/network/TCPServer.h>
 #include <shared/network/ASIOThreadPool.h>
 #include "network/LoginConnection.h"
 
 int main(int /* argc */, char** /* argv */)
 {
-	printf("AION Login Server\n");
+	sLogger.Info("AION Login Server");
 
 	srand((uint32_t)time(NULL));
 
@@ -20,27 +21,21 @@ int main(int /* argc */, char** /* argv */)
 		oTCPServer.SetConnectionPrototype(new LoginConnection());
 		oTCPServer.Start();
 
-		printf("Press Enter to exit ...\n");
+		sLogger.Info("Press Enter to exit ...");
 		std::cin.ignore();
 
 		oTCPServer.Stop();
 
 		shared::ASIOThreadPool::GetInstance()->Stop();
 
-		printf("Execution finished.\n");
+		sLogger.Info("Execution finished.");
 
 		return 0;
 	}
 	catch (std::exception& rException)
 	{
-		printf("Main Exception raised: %s\n", rException.what());
+		sLogger.Error("Main Exception raised: %s", rException.what());
+
 		return 1;
 	}
-
-	
-
-	
-	
-
-	return 0;
 }

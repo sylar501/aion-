@@ -10,6 +10,8 @@
 class Buffer
 {
    public:
+       Buffer();
+
     // Appends the specified data to the packet, moving the write head by the specified length.
     void Append(uint8_t* data, uint32_t len);
     // Appends the specified value to the packet, moving the write head by the size of the specified value type.

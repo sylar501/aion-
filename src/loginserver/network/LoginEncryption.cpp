@@ -18,13 +18,13 @@ LoginEncryption::LoginEncryption()
 
 bool LoginEncryption::Decrypt(uint8_t* aBuffer, size_t u64Length)
 {
+	m_oBlowfish.Decipher(aBuffer, u64Length);
+
 	return true;
 }
 
 size_t LoginEncryption::Encrypt(uint8_t* aBuffer, size_t u64Length)
 {
-	printf("Before Encrypt: %llu\n", u64Length);
-
 	u64Length += 4;
 
 	if (m_bFirstPacket)
@@ -61,8 +61,6 @@ size_t LoginEncryption::Encrypt(uint8_t* aBuffer, size_t u64Length)
 		m_oBlowfish.Cipher(aBuffer, u64Length);
 
 		m_oBlowfish.SetKey(m_aBlowfishKey);
-
-		printf("After Encrypt: %llu\n", u64Length);
 
 		m_bFirstPacket = false;
 	}

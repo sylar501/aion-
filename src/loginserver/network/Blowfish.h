@@ -8,6 +8,7 @@ class Blowfish
 public:
 	void		SetKey(uint8_t* aKey);
 	void		Cipher(uint8_t* aBuffer, size_t u64Length);
+	void		Decipher(uint8_t* aBuffer, size_t u64Length);
 
 public:
 	void		initArrays();

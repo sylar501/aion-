@@ -175,6 +175,39 @@ void Blowfish::Cipher(uint8_t* aBuffer, size_t u64Length)
     }
 }
 
+void Blowfish::Decipher(uint8_t* aBuffer, size_t u64Length)
+{
+    int blockNumber = (int)u64Length >> 3;
+    int p;
+
+    for (int k = 0; k < blockNumber; k++)
+    {
+        p = k << 3;
+
+        int lb = byteArrayToInteger(aBuffer + p);
+        int rb = byteArrayToInteger(aBuffer + p + 4);
+        int tmp;
+
+        for (int i = 17; i > 1; i--)
+        {
+            lb = lb ^ m_pArray[i];
+            rb = feistel(lb) ^ rb;
+            tmp = lb;
+            lb = rb;
+            rb = tmp;
+        }
+
+        tmp = lb;
+        lb = rb;
+        rb = tmp;
+        rb ^= m_pArray[1];
+        lb ^= m_pArray[0];
+
+        integerToByteArray(lb, aBuffer + p);
+        integerToByteArray(rb, aBuffer + p + 4);
+    }
+}
+
 void Blowfish::initArrays()
 {
     int keyIndex = 0;
