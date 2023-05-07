@@ -75,11 +75,78 @@ void PacketProcessor::OnPacketReceived(Buffer& rBuffer)
 
 			sLogger.Info("Login: %s / %s", szAccountName, szPassword);
 
+			// TODO Handle Authentication.
+
+			m_rConnection.SetConnectionState(LoginConnection::ConnectionState::LoginOK);
+
+			// Send Login Success Packet.
+			Buffer* pPacket = new Buffer();
+
+			pPacket->WriteUInt8(0x03);
+			pPacket->WriteUInt32(0x00000322); // AccountId
+			pPacket->WriteUInt32(0xc2458e22); // LoginOK
+			pPacket->WriteUInt32(0x00);
+			pPacket->WriteUInt32(0x00);
+			pPacket->WriteUInt32(1002);
+			pPacket->WriteUInt32(126282165);
+
+			// 47 dummy bytes.
+			for (int i = 0; i < 11; i++)
+				pPacket->WriteUInt32(0x00);
+			for (int i = 0; i < 3; i++)
+				pPacket->WriteUInt8(0x00);
+
+			m_rConnection.SendPacket(pPacket);
+
+			break;
+		}
+		case 0x05:
+		{
+			if (m_rConnection.GetConnectionState() != LoginConnection::ConnectionState::LoginOK)
+				return m_rConnection.CloseConnection();
+
+			// Server List Request.
+			uint32_t u32AccountId = rBuffer.ReadUInt32();
+			uint32_t u32LoginTicket = rBuffer.ReadUInt32();
+
+			// Send Server List Packet.
+			Buffer* pPacket = new Buffer();
+
+			pPacket->WriteUInt8(0x04);
+			pPacket->WriteUInt8(1); // Number of Servers
+			pPacket->WriteUInt8(1); // Last Server ID
+			// foreach GameServer
+			pPacket->WriteUInt8(1); // Server ID
+			uint8_t aServerIP[4] = { 127, 0, 0, 1 };
+			pPacket->Append(aServerIP, 4);
+			pPacket->WriteUInt32(6667);
+			pPacket->WriteUInt8(0x00); // Age Limit
+			pPacket->WriteUInt8(0x01); // PvP Mode
+			pPacket->WriteUInt16(0x22); // Current Players
+			pPacket->WriteUInt16(0x30); // Max Players
+			pPacket->WriteUInt8(1); // IsOnline ?
+			pPacket->WriteUInt32(1);
+			pPacket->WriteUInt8(1);
+			// endforeach
+
+			pPacket->WriteUInt16(2); // Max ID + 1
+			pPacket->WriteUInt8(0x01);
+			// 49 dummy bytes.
+			for (int i = 0; i < 12; i++)
+				pPacket->WriteUInt32(0x00);
+			pPacket->WriteUInt8(0x00);
+
+			// for 1 to MaxId
+			pPacket->WriteUInt8(2); // Number Characters on Server
+			// endfor
+
+			m_rConnection.SendPacket(pPacket);
+
 			break;
 		}
 		default:
 		{
-			sLogger.Warning("PacketProcessor::OnPacketReceived > Unknown Packet Opcode %x", this, u8Opcode);
+			sLogger.Warning("PacketProcessor::OnPacketReceived > Unknown Packet Opcode %x", u8Opcode);
 			break;
 		}
 	}
