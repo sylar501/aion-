@@ -18,7 +18,7 @@ namespace shared
 		virtual void				OnConnect() {}
 		virtual void				OnDisconnect() {}
 
-		virtual void				OnBytesReceived(uint8_t* aBuffer, size_t u64BytesReceived) {}
+		virtual void				OnBytesReceived(uint8_t* /* aBuffer */, size_t /* u64BytesReceived */) {}
 
 	protected:
 		std::shared_ptr<TCPClient>	m_spTCPClient;

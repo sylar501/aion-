@@ -34,12 +34,12 @@ void LoginConnection::OnConnect()
 
 	printf("Packet Size before encryption: %d\n", initPacket.GetWritePosition());
 
-	int size = m_oEncryption.Encrypt(initPacket.GetBuffer() + 2, u64Len - 4) + 2;
+	size_t size = m_oEncryption.Encrypt(initPacket.GetBuffer() + 2, u64Len - 4) + 2;
 
 	initPacket.SetWritePosition(0);
 	initPacket.WriteUInt16((uint16_t)size);
 
-	printf("Packet Size after encryption: %d\n", size);
+	printf("Packet Size after encryption: %llu\n", size);
 
 	initPacket.HexDump();
 
@@ -58,7 +58,7 @@ void LoginConnection::OnBytesReceived(uint8_t* aBuffer, size_t u64BytesReceived)
 	printf("Received %llu bytes\n", u64BytesReceived);
 
 	Buffer recvPacket;
-	recvPacket.Append(aBuffer, u64BytesReceived);
+	recvPacket.Append(aBuffer, (uint32_t) u64BytesReceived);
 	recvPacket.SetReadPosition(0);
 
 	uint16_t u16PacketSize = recvPacket.ReadUInt16();

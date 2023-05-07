@@ -12,6 +12,7 @@ uint8_t sLoginEncryptionInitialKey[16] =
 LoginEncryption::LoginEncryption()
 {
 	m_oBlowfish.SetKey(sLoginEncryptionInitialKey);
+
 	RAND_bytes(m_aBlowfishKey, 16);
 }
 
@@ -36,7 +37,7 @@ size_t LoginEncryption::Encrypt(uint8_t* aBuffer, size_t u64Length)
 		int32_t edx;
 		int32_t ecx = u32XORKey;
 		int32_t pos = 4;
-		int32_t stop = u64Length - 8;
+		int32_t stop = (int32_t)u64Length - 8;
 
 		while (pos < stop)
 		{
@@ -70,7 +71,7 @@ size_t LoginEncryption::Encrypt(uint8_t* aBuffer, size_t u64Length)
 		u64Length += 8 - u64Length % 8;
 
 		int64_t chksum = 0;
-		int32_t count = u64Length - 4;
+		int32_t count = (int32_t)u64Length - 4;
 		int64_t ecx;
 		int i;
 
