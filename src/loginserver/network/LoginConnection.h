@@ -2,13 +2,12 @@
 #define AION_LOGINSERVER_NETWORK_LOGINCONNECTION_H
 
 #include <shared/network/TCPConnection.h>
-#include <shared/network/Buffer.h>
 
 #include "LoginEncryption.h"
 #include "RSAKeyPair.h"
 #include "PacketProcessor.h"
 
-class LoginConnection : public shared::TCPConnection
+class LoginConnection : public shared::network::TCPConnection
 {
 public: 
 	enum class ConnectionState
@@ -20,15 +19,15 @@ public:
 	};
 
 public:
-	virtual shared::TCPConnection* Create();
+	virtual shared::network::TCPConnection* Create();
 
 	LoginConnection();
 
 	void				OnConnect();
 	void				OnDisconnect();
 
-	void				OnPacketReceived(Buffer& rBuffer);
-	void				SendPacket(Buffer* pBuffer, bool bCloseAfterSend = false);
+	void				OnPacketReceived(shared::network::Packet& rPacket);
+	void				SendPacket(shared::network::Packet* pPacket, bool bCloseAfterSend = false);
 
 	ConnectionState		GetConnectionState() { return m_eConnectionState; }
 	void				SetConnectionState(ConnectionState eConnectionState) { m_eConnectionState = eConnectionState; }

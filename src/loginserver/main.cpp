@@ -14,10 +14,10 @@ int main(int /* argc */, char** /* argv */)
 
 	try
 	{
-		shared::ASIOThreadPool::GetInstance()->SetThreadCount(4);
-		shared::ASIOThreadPool::GetInstance()->Start();
+		shared::network::ASIOThreadPool::GetInstance()->SetThreadCount(4);
+		shared::network::ASIOThreadPool::GetInstance()->Start();
 
-		shared::TCPServer oTCPServer("127.0.0.1", 2107);
+		shared::network::TCPServer oTCPServer("127.0.0.1", 2106);
 		oTCPServer.SetConnectionPrototype(new LoginConnection());
 		oTCPServer.Start();
 
@@ -26,7 +26,7 @@ int main(int /* argc */, char** /* argv */)
 
 		oTCPServer.Stop();
 
-		shared::ASIOThreadPool::GetInstance()->Stop();
+		shared::network::ASIOThreadPool::GetInstance()->Stop();
 
 		sLogger.Info("Execution finished.");
 

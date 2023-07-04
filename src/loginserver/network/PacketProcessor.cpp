@@ -11,9 +11,9 @@ PacketProcessor::PacketProcessor(LoginConnection& rConnection)
 
 }
 
-void PacketProcessor::OnPacketReceived(Buffer& rBuffer)
+void PacketProcessor::OnPacketReceived(shared::network::Packet& rPacket)
 {
-	uint8_t u8Opcode = rBuffer.ReadUInt8();
+	uint8_t u8Opcode = rPacket.Read<uint8_t>();
 
 	switch (u8Opcode)
 	{
@@ -22,7 +22,7 @@ void PacketProcessor::OnPacketReceived(Buffer& rBuffer)
 			if (m_rConnection.GetConnectionState() != LoginConnection::ConnectionState::Connected)
 				return m_rConnection.CloseConnection();
 
-			uint32_t u32SessionId = rBuffer.ReadUInt32();
+			uint32_t u32SessionId = rPacket.Read<uint32_t>();
 
 			if (u32SessionId != m_rConnection.GetSessionId())
 			{
@@ -35,16 +35,13 @@ void PacketProcessor::OnPacketReceived(Buffer& rBuffer)
 			m_rConnection.SetConnectionState(LoginConnection::ConnectionState::GameGuardOK);
 
 			// Send GameGuard Auth OK Packet.
-			Buffer* pPacket = new Buffer();
+			shared::network::Packet* pPacket = new shared::network::Packet();
 
-			pPacket->WriteUInt8(0x0B);
-			pPacket->WriteUInt32(m_rConnection.GetSessionId());
+			pPacket->Write<uint8_t>(0x0B);
+			pPacket->Write<uint32_t>(m_rConnection.GetSessionId());
 
 			// 35 dummy bytes.
-			for (int i = 0; i < 8; i++)
-				pPacket->WriteUInt32(0x00);
-			for (int i = 0; i < 3; i++)
-				pPacket->WriteUInt8(0x00);
+			pPacket->WriteZeroes(35);
 
 			m_rConnection.SendPacket(pPacket);
 
@@ -57,14 +54,14 @@ void PacketProcessor::OnPacketReceived(Buffer& rBuffer)
 
 			sLogger.Info("Login Packet");
 
-			if (rBuffer.GetSize() < 132)
+			if (rPacket.GetSize() < 132)
 			{
-				sLogger.Error("PacketProcessor::OnPacketReceived > Invalid Login Packet Size (Expected at least 132, got %llu)", rBuffer.GetSize());
+				sLogger.Error("PacketProcessor::OnPacketReceived > Invalid Login Packet Size (Expected at least 132, got %llu)", rPacket.GetSize());
 				return m_rConnection.CloseConnection();
 			}
 
 			uint8_t aDecrypted[128] = { 0 };
-			if (RSA_private_decrypt(128, rBuffer.GetBuffer() + rBuffer.GetReadPosition() + 4, aDecrypted, m_rConnection.GetRSAKeyPair().GetRSA(), RSA_NO_PADDING) != 128)
+			if (RSA_private_decrypt(128, rPacket.GetDataPtr() + rPacket.GetPosition() + 4, aDecrypted, m_rConnection.GetRSAKeyPair().GetRSA(), RSA_NO_PADDING) != 128)
 			{
 				sLogger.Error("PacketProcessor::OnPacketReceived > RSA Decryption Failed");
 				return m_rConnection.CloseConnection();
@@ -80,21 +77,15 @@ void PacketProcessor::OnPacketReceived(Buffer& rBuffer)
 			m_rConnection.SetConnectionState(LoginConnection::ConnectionState::LoginOK);
 
 			// Send Login Success Packet.
-			Buffer* pPacket = new Buffer();
+			shared::network::Packet* pPacket = new shared::network::Packet();
 
-			pPacket->WriteUInt8(0x03);
-			pPacket->WriteUInt32(0x00000322); // AccountId
-			pPacket->WriteUInt32(0xc2458e22); // LoginOK
-			pPacket->WriteUInt32(0x00);
-			pPacket->WriteUInt32(0x00);
-			pPacket->WriteUInt32(1002);
-			pPacket->WriteUInt32(126282165);
-
-			// 47 dummy bytes.
-			for (int i = 0; i < 11; i++)
-				pPacket->WriteUInt32(0x00);
-			for (int i = 0; i < 3; i++)
-				pPacket->WriteUInt8(0x00);
+			pPacket->Write<uint8_t>(0x03);
+			pPacket->Write<uint32_t>(0x00000322); // AccountId
+			pPacket->Write<uint32_t>(0xc2458e22); // LoginOK
+			pPacket->WriteZeroes(8);
+			pPacket->Write<uint32_t>(1002);
+			pPacket->Write<uint32_t>(126282165);
+			pPacket->WriteZeroes(47);
 
 			m_rConnection.SendPacket(pPacket);
 
@@ -106,38 +97,35 @@ void PacketProcessor::OnPacketReceived(Buffer& rBuffer)
 				return m_rConnection.CloseConnection();
 
 			// Server List Request.
-			uint32_t u32AccountId = rBuffer.ReadUInt32();
-			uint32_t u32LoginTicket = rBuffer.ReadUInt32();
+			uint32_t u32AccountId = rPacket.Read<uint32_t>();
+			uint32_t u32LoginTicket = rPacket.Read<uint32_t>();
 
 			// Send Server List Packet.
-			Buffer* pPacket = new Buffer();
+			shared::network::Packet* pPacket = new shared::network::Packet();
 
-			pPacket->WriteUInt8(0x04);
-			pPacket->WriteUInt8(1); // Number of Servers
-			pPacket->WriteUInt8(1); // Last Server ID
+			pPacket->Write<uint8_t>(0x04);
+			pPacket->Write<uint8_t>(1); // Number of Servers
+			pPacket->Write<uint8_t>(1); // Last Server ID
 			// foreach GameServer
-			pPacket->WriteUInt8(1); // Server ID
+			pPacket->Write<uint8_t>(1); // Server ID
 			uint8_t aServerIP[4] = { 127, 0, 0, 1 };
-			pPacket->Append(aServerIP, 4);
-			pPacket->WriteUInt32(6667);
-			pPacket->WriteUInt8(0x00); // Age Limit
-			pPacket->WriteUInt8(0x01); // PvP Mode
-			pPacket->WriteUInt16(0x22); // Current Players
-			pPacket->WriteUInt16(0x30); // Max Players
-			pPacket->WriteUInt8(1); // IsOnline ?
-			pPacket->WriteUInt32(1);
-			pPacket->WriteUInt8(1);
+			pPacket->WriteBytes(aServerIP, 4);
+			pPacket->Write<uint32_t>(6667);
+			pPacket->Write<uint8_t>(0x00); // Age Limit
+			pPacket->Write<uint8_t>(0x01); // PvP Mode
+			pPacket->Write<uint16_t>(0x22); // Current Players
+			pPacket->Write<uint16_t>(0x30); // Max Players
+			pPacket->Write<uint8_t>(1); // IsOnline ?
+			pPacket->Write<uint32_t>(1);
+			pPacket->Write<uint8_t>(1);
 			// endforeach
 
-			pPacket->WriteUInt16(2); // Max ID + 1
-			pPacket->WriteUInt8(0x01);
-			// 49 dummy bytes.
-			for (int i = 0; i < 12; i++)
-				pPacket->WriteUInt32(0x00);
-			pPacket->WriteUInt8(0x00);
+			pPacket->Write<uint16_t>(2); // Max ID + 1
+			pPacket->Write<uint8_t>(0x01);
+			pPacket->WriteZeroes(49);
 
 			// for 1 to MaxId
-			pPacket->WriteUInt8(2); // Number Characters on Server
+			pPacket->Write<uint8_t>(2); // Number Characters on Server
 			// endfor
 
 			m_rConnection.SendPacket(pPacket);
@@ -154,10 +142,10 @@ void PacketProcessor::OnPacketReceived(Buffer& rBuffer)
 
 void PacketProcessor::SendPacket_LoginFailed(uint8_t u8Reason)
 {
-	Buffer* pPacket = new Buffer();
+	shared::network::Packet* pPacket = new shared::network::Packet();
 
-	pPacket->WriteUInt8(0x01);
-	pPacket->WriteUInt32(u8Reason);
+	pPacket->Write<uint8_t>(0x01);
+	pPacket->Write<uint32_t>(u8Reason);
 
 	m_rConnection.SendPacket(pPacket, true);
 }

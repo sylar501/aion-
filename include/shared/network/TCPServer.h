@@ -7,31 +7,34 @@
 
 namespace shared
 {
-	class TCPServer
+	namespace network
 	{
-	public:
-		TCPServer(const std::string& strListenAddress, uint16_t u16ListenPort);
+		class TCPServer
+		{
+		public:
+			TCPServer(const std::string& strListenAddress, uint16_t u16ListenPort);
 
-		void						Start();
-		void						Stop();
+			void						Start();
+			void						Stop();
 
-		void						SetConnectionPrototype(TCPConnection* pConnectionPrototype);
-		asio::ip::tcp::socket&		GetSocket();
+			void						SetConnectionPrototype(TCPConnection* pConnectionPrototype);
+			asio::ip::tcp::socket&		GetSocket();
 
-	private:
-		void						BeginAccept();
+		private:
+			void						BeginAccept();
 
-	private:
-		std::string					m_strListenAddress;
-		uint16_t					m_u16ListenPort = 0;
+		private:
+			std::string					m_strListenAddress;
+			uint16_t					m_u16ListenPort = 0;
 
-		asio::ip::tcp::acceptor		m_oAcceptor;
-		asio::ip::tcp::socket		m_oClientSocket;
+			asio::ip::tcp::acceptor		m_oAcceptor;
+			asio::ip::tcp::socket		m_oClientSocket;
 
-		bool						m_bStarted = false;
+			bool						m_bStarted = false;
 
-		TCPConnection*				m_pConnectionPrototype = nullptr;
-	};
+			TCPConnection*				m_pConnectionPrototype = nullptr;
+		};
+	}
 }
 
 #endif

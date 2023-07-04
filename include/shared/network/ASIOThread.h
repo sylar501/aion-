@@ -7,23 +7,26 @@
 
 namespace shared
 {
-	class ASIOThread
+	namespace network
 	{
-	public:
-		ASIOThread(uint8_t u8ThreadId, asio::io_context& rIOContext);
+		class ASIOThread
+		{
+		public:
+			ASIOThread(uint8_t u8ThreadId, asio::io_context& rIOContext);
 
-		void				Start();
-		void				Stop();
+			void				Start();
+			void				Stop();
 
-	private:
-		void				ThreadRoutine();
+		private:
+			void				ThreadRoutine();
 
-	private:
-		uint8_t				m_u8ThreadId = 0;
-		asio::io_context&	m_rIOContext;
-		bool				m_bContinue = false;
-		std::thread*		m_pThread = nullptr;
-	};
+		private:
+			uint8_t				m_u8ThreadId = 0;
+			asio::io_context&	m_rIOContext;
+			bool				m_bContinue = false;
+			std::thread*		m_pThread = nullptr;
+		};
+	}
 }
 
 #endif

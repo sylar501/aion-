@@ -4,32 +4,36 @@
 #include <stdint.h>
 #include <memory>
 
-#include <shared/network/Buffer.h>
+#include <shared/network/Packet.h>
 
 namespace shared
 {
-	class TCPClient;
-
-	class TCPConnection
+	namespace network
 	{
-	public:
-		virtual TCPConnection*		Create() = 0;
+		class TCPClient;
 
-		void						SetTCPClient(std::shared_ptr<TCPClient> spTCPClient);
+		class TCPConnection
+		{
+		public:
+			virtual TCPConnection* Create() = 0;
 
-		virtual void				OnConnect();
-		virtual void				OnDisconnect();
+			void						SetTCPClient(std::shared_ptr<TCPClient> spTCPClient);
 
-		void						CloseConnection();
+			virtual void				OnConnect();
+			virtual void				OnDisconnect();
 
-		void						OnBytesReceived(uint8_t* aBuffer, size_t u64BytesReceived);
+			void						CloseConnection();
 
-		virtual void				OnPacketReceived(Buffer& rBuffer) = 0;
+			void						OnBytesReceived(uint8_t* aBuffer, size_t u64BytesReceived);
 
-	protected:
-		std::shared_ptr<TCPClient>	m_spTCPClient;
-		Buffer						m_oReceiveBuffer;
-	};
+			virtual void				OnPacketReceived(Packet& rPacket) = 0;
+
+		protected:
+			std::shared_ptr<TCPClient>	m_spTCPClient;
+			std::vector<uint8_t>		m_vReceiveBuffer;
+			uint32_t					m_u32ReceiveBufferPosition = 0;
+		};
+	}
 }
 
 #endif

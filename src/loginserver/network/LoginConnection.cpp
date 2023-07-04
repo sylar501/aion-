@@ -1,12 +1,11 @@
 #include "LoginConnection.h"
 
-#include <shared/network/Buffer.h>
 #include <shared/network/TCPClient.h>
 #include <shared/utilities/Logger.h>
 
 #include <openssl/rand.h>
 
-shared::TCPConnection* LoginConnection::Create()
+shared::network::TCPConnection* LoginConnection::Create()
 {
 	return new LoginConnection();
 }
@@ -19,7 +18,7 @@ LoginConnection::LoginConnection()
 
 void LoginConnection::OnConnect()
 {
-	shared::TCPConnection::OnConnect();
+	shared::network::TCPConnection::OnConnect();
 
 	// Generate Session ID.
 	RAND_bytes((uint8_t*)&m_u32SessionId, sizeof(uint32_t));
@@ -29,20 +28,19 @@ void LoginConnection::OnConnect()
 	m_eConnectionState = ConnectionState::Connected;
 
 	// Make Init Packet.
-	Buffer* pInitPacket = new Buffer();
+	shared::network::Packet* pInitPacket = new shared::network::Packet();
 
-	pInitPacket->WriteInt8(0); // Opcode Init
-	pInitPacket->WriteUInt32(m_u32SessionId); // sessionId
-	pInitPacket->WriteUInt32(0x0000c621); // protocol revision
-	pInitPacket->Append(m_oRSAKeyPair.GetEncryptedModulus(), 128);
+	pInitPacket->Write<uint8_t>(0); // Opcode Init
+	pInitPacket->Write<uint32_t>(m_u32SessionId); // sessionId
+	pInitPacket->Write<uint32_t>(0x0000c621); // protocol revision
+	pInitPacket->WriteBytes(m_oRSAKeyPair.GetEncryptedModulus(), 128);
 	
-	for (int8_t i = 0; i < 4; i++)
-		pInitPacket->WriteUInt32(0);
+	pInitPacket->WriteZeroes(16);
 
-	pInitPacket->Append(m_oEncryption.GetBlowfishKey(), 16);
-	pInitPacket->WriteUInt32(197635);
-	pInitPacket->WriteUInt32(2097152);
-	
+	pInitPacket->WriteBytes(m_oEncryption.GetBlowfishKey(), 16);
+	pInitPacket->Write<uint32_t>(197635);
+	pInitPacket->Write<uint32_t>(2097152);
+		
 	SendPacket(pInitPacket);
 }
 
@@ -50,30 +48,31 @@ void LoginConnection::OnDisconnect()
 {
 	sLogger.Info("LoginConnection(0x%x)::OnDisconnect > %u", this, m_u32SessionId);
 
-	shared::TCPConnection::OnDisconnect();
+	shared::network::TCPConnection::OnDisconnect();
 }
 
-void LoginConnection::OnPacketReceived(Buffer& rBuffer)
+void LoginConnection::OnPacketReceived(shared::network::Packet& rPacket)
 {
 	// Decrypt Message.
-	m_oEncryption.Decrypt(rBuffer.GetBuffer(), rBuffer.GetSize());
+	m_oEncryption.Decrypt(rPacket.GetDataPtr(), rPacket.GetSize());
 
 	// Handle Packet.
-	m_oPacketProcessor.OnPacketReceived(rBuffer);
+	rPacket.SetPosition(0);
+	m_oPacketProcessor.OnPacketReceived(rPacket);
 }
 
-void LoginConnection::SendPacket(Buffer* pBuffer, bool bCloseAfterSend)
+void LoginConnection::SendPacket(shared::network::Packet* pPacket, bool bCloseAfterSend)
 {
-	pBuffer->Resize(pBuffer->GetWritePosition() + 4 + 8 - pBuffer->GetWritePosition() % 8);
+	pPacket->Resize(pPacket->GetPosition() + 4 + 8 - pPacket->GetPosition() % 8);
 
-	size_t u64Size = m_oEncryption.Encrypt(pBuffer->GetBuffer() + 2, pBuffer->GetWritePosition() - 4) + 2;
+	size_t u64Size = m_oEncryption.Encrypt(pPacket->GetDataPtr() + 2, pPacket->GetPosition() - 4) + 2;
 
-	pBuffer->SetWritePosition(0);
-	pBuffer->WriteUInt16((uint16_t)u64Size);
+	pPacket->SetPosition(0);
+	pPacket->Write<uint16_t>(u64Size);
 
-	m_spTCPClient->GetSocket().async_send(asio::buffer(pBuffer->GetBuffer(), u64Size), asio::bind_executor(m_spTCPClient->GetSendStrand(), [pBuffer, bCloseAfterSend, this](std::error_code ec, size_t /* bytesTransferred */)
+	m_spTCPClient->GetSocket().async_send(asio::buffer(pPacket->GetDataPtr(), u64Size), asio::bind_executor(m_spTCPClient->GetSendStrand(), [pPacket, bCloseAfterSend, this](std::error_code ec, size_t /* bytesTransferred */)
 	{
-		delete pBuffer;
+		delete pPacket;
 
 		if (ec)
 		{

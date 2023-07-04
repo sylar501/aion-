@@ -11,31 +11,34 @@
 
 namespace shared
 {
-	class TCPClient : public std::enable_shared_from_this<TCPClient>
+	namespace network
 	{
-	public:
-		TCPClient(asio::ip::tcp::socket oSocket);
-		~TCPClient();
+		class TCPClient : public std::enable_shared_from_this<TCPClient>
+		{
+		public:
+			TCPClient(asio::ip::tcp::socket oSocket);
+			~TCPClient();
 
-		asio::ip::tcp::socket&		GetSocket();
-		void						Start(TCPConnection* pConnection);
+			asio::ip::tcp::socket&		GetSocket();
+			void						Start(TCPConnection* pConnection);
 
-		asio::io_context::strand&	GetSendStrand();
+			asio::io_context::strand&	GetSendStrand();
 
-	private:
-		void						BeginRead();
+		private:
+			void						BeginRead();
 
-	private:
-		asio::ip::tcp::socket		m_oSocket;
+		private:
+			asio::ip::tcp::socket		m_oSocket;
 
-		uint8_t						m_aReceiveBuffer[RECEIVE_BUFFER_SIZE] = { 0 };
-		asio::mutable_buffer		m_oReceiveBuffer;
+			uint8_t						m_aReceiveBuffer[RECEIVE_BUFFER_SIZE] = { 0 };
+			asio::mutable_buffer		m_oReceiveBuffer;
 
-		asio::io_context::strand	m_oReceiveStrand;
-		asio::io_context::strand	m_oSendStrand;
+			asio::io_context::strand	m_oReceiveStrand;
+			asio::io_context::strand	m_oSendStrand;
 
-		TCPConnection*				m_pConnection;
-	};
+			TCPConnection*				m_pConnection;
+		};
+	}
 }
 
 #endif

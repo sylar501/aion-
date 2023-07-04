@@ -9,27 +9,36 @@
 
 namespace shared
 {
-	class ASIOThreadPool
+	namespace network
 	{
-	public:
-		static ASIOThreadPool*		GetInstance();
+		/*
+			This class handles a pool of threads, each processing pending
+			handles for the same ASIO IO Context.
 
-	public:
-		void						SetThreadCount(uint8_t u8NbThreads);
-		asio::io_context&			GetIOContext();
+			It allows for multi-threading use of the ASIO Library.
+		*/
+		class ASIOThreadPool
+		{
+		public:
+			static ASIOThreadPool*		GetInstance();
 
-		void						Start();
-		void						Stop();
+		public:
+			void						SetThreadCount(uint8_t u8NbThreads);
+			asio::io_context&			GetIOContext();
 
-	private:
-		static ASIOThreadPool*		ms_pInstance;
+			void						Start();
+			void						Stop();
 
-	private:
-		uint8_t						m_u8NbThreads;
-		std::vector<ASIOThread*>	m_vThreads;
-		asio::io_context			m_oIOContext;
-		bool						m_bStarted = false;
-	};
+		private:
+			static ASIOThreadPool*		ms_pInstance;
+
+		private:
+			uint8_t						m_u8NbThreads;
+			std::vector<ASIOThread*>	m_vThreads;
+			asio::io_context			m_oIOContext;
+			bool						m_bStarted = false;
+		};
+	}
 }
 
 #endif

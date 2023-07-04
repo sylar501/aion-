@@ -2,59 +2,62 @@
 
 namespace shared
 {
-	ASIOThreadPool* ASIOThreadPool::ms_pInstance = nullptr;
-
-	ASIOThreadPool* ASIOThreadPool::GetInstance()
+	namespace network
 	{
-		if (!ms_pInstance)
+		ASIOThreadPool* ASIOThreadPool::ms_pInstance = nullptr;
+
+		ASIOThreadPool* ASIOThreadPool::GetInstance()
 		{
-			ms_pInstance = new ASIOThreadPool();
-		}
-
-		return ms_pInstance;
-	}
-
-	void ASIOThreadPool::SetThreadCount(uint8_t u8NbThreads)
-	{
-		m_u8NbThreads = u8NbThreads;
-	}
-
-	asio::io_context& ASIOThreadPool::GetIOContext()
-	{
-		return m_oIOContext;
-	}
-
-	void ASIOThreadPool::Start()
-	{
-		if (!m_bStarted)
-		{
-			for (uint8_t i = 0; i < m_u8NbThreads; i++)
+			if (!ms_pInstance)
 			{
-				ASIOThread* pThread = new ASIOThread(i, m_oIOContext);
-
-				m_vThreads.push_back(pThread);
-
-				pThread->Start();
+				ms_pInstance = new ASIOThreadPool();
 			}
 
-			m_bStarted = true;
+			return ms_pInstance;
 		}
-	}
 
-	void ASIOThreadPool::Stop()
-	{
-		if (m_bStarted)
+		void ASIOThreadPool::SetThreadCount(uint8_t u8NbThreads)
 		{
-			m_oIOContext.stop();
+			m_u8NbThreads = u8NbThreads;
+		}
 
-			for (ASIOThread* pThread : m_vThreads)
+		asio::io_context& ASIOThreadPool::GetIOContext()
+		{
+			return m_oIOContext;
+		}
+
+		void ASIOThreadPool::Start()
+		{
+			if (!m_bStarted)
 			{
-				pThread->Stop();
+				for (uint8_t i = 0; i < m_u8NbThreads; i++)
+				{
+					ASIOThread* pThread = new ASIOThread(i, m_oIOContext);
 
-				delete pThread;
+					m_vThreads.push_back(pThread);
+
+					pThread->Start();
+				}
+
+				m_bStarted = true;
 			}
+		}
 
-			m_vThreads.clear();
+		void ASIOThreadPool::Stop()
+		{
+			if (m_bStarted)
+			{
+				m_oIOContext.stop();
+
+				for (ASIOThread* pThread : m_vThreads)
+				{
+					pThread->Stop();
+
+					delete pThread;
+				}
+
+				m_vThreads.clear();
+			}
 		}
 	}
 }
