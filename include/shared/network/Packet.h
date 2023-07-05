@@ -63,9 +63,13 @@ namespace shared
 			// Writes the specified amount of zeroes into the packet.
 			void					WriteZeroes(uint32_t u32Count);
 
+			TCPConnection*			GetConnection();
+			void					SetConnection(TCPConnection* pConnection);
+
 		protected:
 			std::vector<uint8_t>	m_vData;
 			uint32_t				m_u32Position = 0;
+			TCPConnection*			m_pConnection = nullptr;
 		};
 	}
 }

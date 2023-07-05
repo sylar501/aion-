@@ -29,7 +29,7 @@ namespace shared
 
 			void						OnBytesReceived(uint8_t* aBuffer, size_t u64BytesReceived);
 
-			virtual void				OnPacketReceived(Packet& rPacket) = 0;
+			virtual void				OnPacketReceived(Packet* pPacket) = 0;
 
 		protected:
 			std::shared_ptr<TCPClient>	m_spTCPClient;

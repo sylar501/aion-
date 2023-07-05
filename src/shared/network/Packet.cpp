@@ -117,5 +117,15 @@ namespace shared
 
 			m_u32Position += u32Count;
 		}
+
+		TCPConnection* Packet::GetConnection()
+		{
+			return m_pConnection;
+		}
+
+		void Packet::SetConnection(TCPConnection* pConnection)
+		{
+			m_pConnection = pConnection;
+		}
 	}
 }

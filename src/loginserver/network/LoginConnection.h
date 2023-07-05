@@ -5,7 +5,6 @@
 
 #include "crypto/LoginEncryption.h"
 #include "crypto/RSAKeyPair.h"
-#include "PacketProcessor.h"
 
 class LoginConnection : public shared::network::TCPConnection
 {
@@ -26,7 +25,7 @@ public:
 	void				OnConnect();
 	void				OnDisconnect();
 
-	void				OnPacketReceived(shared::network::Packet& rPacket);
+	void				OnPacketReceived(shared::network::Packet* pPacket);
 	void				SendPacket(shared::network::Packet* pPacket, bool bCloseAfterSend = false);
 
 	ConnectionState		GetConnectionState() { return m_eConnectionState; }
@@ -38,7 +37,6 @@ public:
 private:
 	LoginEncryption		m_oEncryption;
 	RSAKeyPair			m_oRSAKeyPair;
-	PacketProcessor		m_oPacketProcessor;
 	uint32_t			m_u32SessionId = 0;
 	ConnectionState		m_eConnectionState = ConnectionState::Unknown;
 };

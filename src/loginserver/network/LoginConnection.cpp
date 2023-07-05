@@ -1,4 +1,5 @@
 #include "LoginConnection.h"
+#include "LoginPacketProcessor.h"
 
 #include <shared/network/TCPClient.h>
 #include <shared/utilities/Logger.h>
@@ -11,7 +12,6 @@ shared::network::TCPConnection* LoginConnection::Create()
 }
 
 LoginConnection::LoginConnection()
-: m_oPacketProcessor(*this)
 {
 
 }
@@ -51,14 +51,14 @@ void LoginConnection::OnDisconnect()
 	shared::network::TCPConnection::OnDisconnect();
 }
 
-void LoginConnection::OnPacketReceived(shared::network::Packet& rPacket)
+void LoginConnection::OnPacketReceived(shared::network::Packet* pPacket)
 {
 	// Decrypt Message.
-	m_oEncryption.Decrypt(rPacket.GetDataPtr(), rPacket.GetSize());
+	m_oEncryption.Decrypt(pPacket->GetDataPtr(), pPacket->GetSize());
 
 	// Handle Packet.
-	rPacket.SetPosition(0);
-	m_oPacketProcessor.OnPacketReceived(rPacket);
+	pPacket->SetPosition(0);
+	sLoginPacketProcessor.EnqueuePacket(pPacket);
 }
 
 void LoginConnection::SendPacket(shared::network::Packet* pPacket, bool bCloseAfterSend)

@@ -5,6 +5,7 @@
 #include <shared/network/TCPServer.h>
 #include <shared/network/ASIOThreadPool.h>
 #include "network/LoginConnection.h"
+#include "network/LoginPacketProcessor.h"
 
 int main(int /* argc */, char** /* argv */)
 {
@@ -14,9 +15,15 @@ int main(int /* argc */, char** /* argv */)
 
 	try
 	{
+		// Network Initialization.
+		// Start ASIO Thread Pool.
 		shared::network::ASIOThreadPool::GetInstance()->SetThreadCount(1);
 		shared::network::ASIOThreadPool::GetInstance()->Start();
 
+		// Start Login Packet Processor.
+		sLoginPacketProcessor.Start();
+
+		// Start Login TCP Server.
 		shared::network::TCPServer oTCPServer("127.0.0.1", 2106);
 		oTCPServer.SetConnectionPrototype(new LoginConnection());
 		oTCPServer.Start();
@@ -25,6 +32,8 @@ int main(int /* argc */, char** /* argv */)
 		std::cin.ignore();
 
 		oTCPServer.Stop();
+
+		sLoginPacketProcessor.Stop();
 
 		shared::network::ASIOThreadPool::GetInstance()->Stop();
 

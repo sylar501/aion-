@@ -68,12 +68,14 @@ namespace shared
 				if (u32Delta < 0) break; // Fragmented packet, the rest will be received later.
 
 				// Create Packet.
-				Packet oPacket;
+				Packet* pPacket = new Packet();
 
-				oPacket.SetPosition(0);
-				oPacket.WriteBytes(&m_vReceiveBuffer[2], u16PacketSize - 2);
+				pPacket->SetPosition(0);
+				pPacket->WriteBytes(&m_vReceiveBuffer[2], u16PacketSize - 2);
+				
+				pPacket->SetConnection(this);
 
-				OnPacketReceived(oPacket);
+				OnPacketReceived(pPacket);
 
 				if (u32Delta > 0)
 				{

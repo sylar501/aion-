@@ -1,70 +1,73 @@
-#include "PacketProcessor.h"
+#include "LoginPacketProcessor.h"
 #include "LoginConnection.h"
 
 #include <shared/utilities/Logger.h>
 
 #include <openssl/rsa.h>
 
-PacketProcessor::PacketProcessor(LoginConnection& rConnection)
-: m_rConnection(rConnection)
+LoginPacketProcessor sLoginPacketProcessor;
+
+LoginPacketProcessor::LoginPacketProcessor()
+: shared::network::PacketProcessor(1) // 1 thread for Login.
 {
 
 }
 
-void PacketProcessor::OnPacketReceived(shared::network::Packet& rPacket)
+void LoginPacketProcessor::ProcessPacket(shared::network::Packet* pPacket)
 {
-	uint8_t u8Opcode = rPacket.Read<uint8_t>();
+	uint8_t u8Opcode = pPacket->Read<uint8_t>();
+	LoginConnection* pConnection = (LoginConnection*) pPacket->GetConnection();
 
 	switch (u8Opcode)
 	{
 		case 0x07: // GameGuard Authentication.
 		{
-			if (m_rConnection.GetConnectionState() != LoginConnection::ConnectionState::Connected)
-				return m_rConnection.CloseConnection();
+			if (pConnection->GetConnectionState() != LoginConnection::ConnectionState::Connected)
+				return pConnection->CloseConnection();
 
-			uint32_t u32SessionId = rPacket.Read<uint32_t>();
+			uint32_t u32SessionId = pPacket->Read<uint32_t>();
 
-			if (u32SessionId != m_rConnection.GetSessionId())
+			if (u32SessionId != pConnection->GetSessionId())
 			{
 				// Wrong SessionID received from client.
 				// Either this is an encryption issue (however should not happen),
 				// or there is an issue client side.
-				return SendPacket_LoginFailed(2);
+				return SendPacket_LoginFailed(pConnection, 2);
 			}
 
-			m_rConnection.SetConnectionState(LoginConnection::ConnectionState::GameGuardOK);
+			pConnection->SetConnectionState(LoginConnection::ConnectionState::GameGuardOK);
 
 			// Send GameGuard Auth OK Packet.
 			shared::network::Packet* pPacket = new shared::network::Packet();
 
 			pPacket->Write<uint8_t>(0x0B);
-			pPacket->Write<uint32_t>(m_rConnection.GetSessionId());
+			pPacket->Write<uint32_t>(pConnection->GetSessionId());
 
 			// 35 dummy bytes.
 			pPacket->WriteZeroes(35);
 
-			m_rConnection.SendPacket(pPacket);
+			pConnection->SendPacket(pPacket);
 
 			break;
 		}
 		case 0x0B:
 		{
-			if (m_rConnection.GetConnectionState() != LoginConnection::ConnectionState::GameGuardOK)
-				return m_rConnection.CloseConnection();
+			if (pConnection->GetConnectionState() != LoginConnection::ConnectionState::GameGuardOK)
+				return pConnection->CloseConnection();
 
 			sLogger.Info("Login Packet");
 
-			if (rPacket.GetSize() < 132)
+			if (pPacket->GetSize() < 132)
 			{
-				sLogger.Error("PacketProcessor::OnPacketReceived > Invalid Login Packet Size (Expected at least 132, got %llu)", rPacket.GetSize());
-				return m_rConnection.CloseConnection();
+				sLogger.Error("PacketProcessor::OnPacketReceived > Invalid Login Packet Size (Expected at least 132, got %llu)", pPacket->GetSize());
+				return pConnection->CloseConnection();
 			}
 
 			uint8_t aDecrypted[128] = { 0 };
-			if (RSA_private_decrypt(128, rPacket.GetDataPtr() + rPacket.GetPosition() + 4, aDecrypted, m_rConnection.GetRSAKeyPair().GetRSA(), RSA_NO_PADDING) != 128)
+			if (RSA_private_decrypt(128, pPacket->GetDataPtr() + pPacket->GetPosition() + 4, aDecrypted, pConnection->GetRSAKeyPair().GetRSA(), RSA_NO_PADDING) != 128)
 			{
 				sLogger.Error("PacketProcessor::OnPacketReceived > RSA Decryption Failed");
-				return m_rConnection.CloseConnection();
+				return pConnection->CloseConnection();
 			}
 
 			char* szAccountName = (char*)&aDecrypted[64];
@@ -74,7 +77,7 @@ void PacketProcessor::OnPacketReceived(shared::network::Packet& rPacket)
 
 			// TODO Handle Authentication.
 
-			m_rConnection.SetConnectionState(LoginConnection::ConnectionState::LoginOK);
+			pConnection->SetConnectionState(LoginConnection::ConnectionState::LoginOK);
 
 			// Send Login Success Packet.
 			shared::network::Packet* pPacket = new shared::network::Packet();
@@ -87,18 +90,18 @@ void PacketProcessor::OnPacketReceived(shared::network::Packet& rPacket)
 			pPacket->Write<uint32_t>(126282165);
 			pPacket->WriteZeroes(47);
 
-			m_rConnection.SendPacket(pPacket);
+			pConnection->SendPacket(pPacket);
 
 			break;
 		}
 		case 0x05:
 		{
-			if (m_rConnection.GetConnectionState() != LoginConnection::ConnectionState::LoginOK)
-				return m_rConnection.CloseConnection();
+			if (pConnection->GetConnectionState() != LoginConnection::ConnectionState::LoginOK)
+				return pConnection->CloseConnection();
 
 			// Server List Request.
-			uint32_t u32AccountId = rPacket.Read<uint32_t>();
-			uint32_t u32LoginTicket = rPacket.Read<uint32_t>();
+			uint32_t u32AccountId = pPacket->Read<uint32_t>();
+			uint32_t u32LoginTicket = pPacket->Read<uint32_t>();
 
 			// Send Server List Packet.
 			shared::network::Packet* pPacket = new shared::network::Packet();
@@ -128,7 +131,7 @@ void PacketProcessor::OnPacketReceived(shared::network::Packet& rPacket)
 			pPacket->Write<uint8_t>(2); // Number Characters on Server
 			// endfor
 
-			m_rConnection.SendPacket(pPacket);
+			pConnection->SendPacket(pPacket);
 
 			break;
 		}
@@ -140,12 +143,12 @@ void PacketProcessor::OnPacketReceived(shared::network::Packet& rPacket)
 	}
 }
 
-void PacketProcessor::SendPacket_LoginFailed(uint8_t u8Reason)
+void LoginPacketProcessor::SendPacket_LoginFailed(LoginConnection* pConnection, uint8_t u8Reason)
 {
 	shared::network::Packet* pPacket = new shared::network::Packet();
 
 	pPacket->Write<uint8_t>(0x01);
 	pPacket->Write<uint32_t>(u8Reason);
 
-	m_rConnection.SendPacket(pPacket, true);
+	pConnection->SendPacket(pPacket, true);
 }
