@@ -1,5 +1,5 @@
 # aion++
 
-AION Classic (1.9-EU) C++ Emulator.
+AION 2.7 C++ Emulator.
 
 For educational purposes only.

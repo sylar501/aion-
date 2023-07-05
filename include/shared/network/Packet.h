@@ -9,6 +9,8 @@ namespace shared
 {
 	namespace network
 	{
+		class TCPConnection;
+
 		class Packet
 		{
 		public:

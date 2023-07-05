@@ -68,7 +68,7 @@ void LoginConnection::SendPacket(shared::network::Packet* pPacket, bool bCloseAf
 	size_t u64Size = m_oEncryption.Encrypt(pPacket->GetDataPtr() + 2, pPacket->GetPosition() - 4) + 2;
 
 	pPacket->SetPosition(0);
-	pPacket->Write<uint16_t>(u64Size);
+	pPacket->Write<uint16_t>((uint16_t)u64Size);
 
 	m_spTCPClient->GetSocket().async_send(asio::buffer(pPacket->GetDataPtr(), u64Size), asio::bind_executor(m_spTCPClient->GetSendStrand(), [pPacket, bCloseAfterSend, this](std::error_code ec, size_t /* bytesTransferred */)
 	{

@@ -1,5 +1,7 @@
 #include <shared/network/TCPClient.h>
+#include <shared/network/TCPServer.h>
 #include <shared/network/ASIOThreadPool.h>
+#include <shared/utilities/Logger.h>
 
 namespace shared
 {
@@ -16,10 +18,7 @@ namespace shared
 
 		TCPClient::~TCPClient()
 		{
-			if (m_pConnection)
-			{
-				delete m_pConnection;
-			}
+			delete m_pConnection;
 		}
 
 		void TCPClient::BeginRead()
@@ -31,6 +30,7 @@ namespace shared
 				if (ec)
 				{
 					// Disconnected by peer.
+					m_pConnection->SetOpen(false);
 					m_pConnection->OnDisconnect();
 				}
 				else
@@ -49,6 +49,11 @@ namespace shared
 			return m_oSocket;
 		}
 
+		TCPConnection* TCPClient::GetConnection()
+		{
+			return m_pConnection;
+		}
+
 		void TCPClient::Start(TCPConnection* pConnection)
 		{
 			m_pConnection = pConnection;
@@ -58,6 +63,16 @@ namespace shared
 			pConnection->OnConnect();
 
 			BeginRead();
+		}
+
+		TCPServer* TCPClient::GetServer()
+		{
+			return m_pServer;
+		}
+
+		void TCPClient::SetServer(TCPServer* pServer)
+		{
+			m_pServer = pServer;
 		}
 
 		asio::io_context::strand& TCPClient::GetSendStrand()

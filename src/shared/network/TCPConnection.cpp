@@ -1,5 +1,6 @@
 #include <shared/network/TCPConnection.h>
 #include <shared/network/TCPClient.h>
+#include <shared/network/TCPServer.h>
 
 namespace shared
 {
@@ -12,6 +13,7 @@ namespace shared
 
 		void TCPConnection::OnConnect()
 		{
+			SetOpen(true);
 			m_vReceiveBuffer.resize(8192);
 			m_u32ReceiveBufferPosition = 0;
 		}
@@ -23,7 +25,25 @@ namespace shared
 
 		void TCPConnection::CloseConnection()
 		{
+			SetOpen(false);
 			m_spTCPClient->GetSocket().close();
+		}
+
+		bool TCPConnection::IsOpen()
+		{
+			return m_bIsOpen;
+		}
+
+		void TCPConnection::SetOpen(bool bOpen)
+		{
+			m_bIsOpen = bOpen;
+
+			if (!m_bIsOpen)
+			{
+				// Connection was just closed and made unavailable to the system.
+				// Remove it from Server List.
+				m_spTCPClient->GetServer()->RemoveClientConnection(this);
+			}
 		}
 
 		void TCPConnection::OnBytesReceived(uint8_t* aBuffer, size_t u64BytesReceived)
@@ -36,7 +56,7 @@ namespace shared
 			}
 
 			memcpy(&m_vReceiveBuffer[m_u32ReceiveBufferPosition], aBuffer, u64BytesReceived);
-			m_u32ReceiveBufferPosition += u64BytesReceived;
+			m_u32ReceiveBufferPosition += (uint32_t)u64BytesReceived;
 
 			while (true)
 			{

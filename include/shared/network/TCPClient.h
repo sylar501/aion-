@@ -13,6 +13,8 @@ namespace shared
 {
 	namespace network
 	{
+		class TCPServer;
+
 		class TCPClient : public std::enable_shared_from_this<TCPClient>
 		{
 		public:
@@ -20,7 +22,12 @@ namespace shared
 			~TCPClient();
 
 			asio::ip::tcp::socket&		GetSocket();
+			TCPConnection*				GetConnection();
+
 			void						Start(TCPConnection* pConnection);
+
+			TCPServer*					GetServer();
+			void						SetServer(TCPServer* pServer);
 
 			asio::io_context::strand&	GetSendStrand();
 
@@ -36,7 +43,8 @@ namespace shared
 			asio::io_context::strand	m_oReceiveStrand;
 			asio::io_context::strand	m_oSendStrand;
 
-			TCPConnection*				m_pConnection;
+			TCPConnection*				m_pConnection = nullptr;
+			TCPServer*					m_pServer = nullptr;
 		};
 	}
 }

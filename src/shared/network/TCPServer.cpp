@@ -44,6 +44,20 @@ namespace shared
 			return m_oClientSocket;
 		}
 
+		void TCPServer::RemoveClientConnection(TCPConnection* pConnection)
+		{
+			m_mtxClientConnections.lock();
+			{
+				auto it = std::find(m_vClientConnections.begin(), m_vClientConnections.end(), pConnection);
+
+				if (it != m_vClientConnections.end())
+				{
+					m_vClientConnections.erase(it);
+				}
+			}
+			m_mtxClientConnections.unlock();
+		}
+
 		void TCPServer::BeginAccept()
 		{
 			m_oAcceptor.async_accept(m_oClientSocket, [this](std::error_code ec)
@@ -54,9 +68,22 @@ namespace shared
 				}
 				else
 				{
+					// Create TCPClient.
 					std::shared_ptr<TCPClient> spNewClient = std::make_shared<TCPClient>(std::move(m_oClientSocket));
 
-					spNewClient->Start(m_pConnectionPrototype->Create());
+					// Create TCPConnection.
+					TCPConnection* pNewConnection = m_pConnectionPrototype->Create();
+
+					// Store Connection.
+					m_mtxClientConnections.lock();
+					{
+						m_vClientConnections.push_back(pNewConnection);
+					}
+					m_mtxClientConnections.unlock();
+
+					// Start TCPClient work.
+					spNewClient->SetServer(this);
+					spNewClient->Start(pNewConnection);
 
 					BeginAccept();
 				}

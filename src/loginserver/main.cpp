@@ -14,7 +14,7 @@ int main(int /* argc */, char** /* argv */)
 
 	try
 	{
-		shared::network::ASIOThreadPool::GetInstance()->SetThreadCount(4);
+		shared::network::ASIOThreadPool::GetInstance()->SetThreadCount(1);
 		shared::network::ASIOThreadPool::GetInstance()->Start();
 
 		shared::network::TCPServer oTCPServer("127.0.0.1", 2106);

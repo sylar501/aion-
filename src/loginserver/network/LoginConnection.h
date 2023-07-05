@@ -3,8 +3,8 @@
 
 #include <shared/network/TCPConnection.h>
 
-#include "LoginEncryption.h"
-#include "RSAKeyPair.h"
+#include "crypto/LoginEncryption.h"
+#include "crypto/RSAKeyPair.h"
 #include "PacketProcessor.h"
 
 class LoginConnection : public shared::network::TCPConnection

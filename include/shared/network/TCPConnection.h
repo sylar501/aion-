@@ -24,12 +24,16 @@ namespace shared
 
 			void						CloseConnection();
 
+			bool						IsOpen();
+			void						SetOpen(bool bOpen);
+
 			void						OnBytesReceived(uint8_t* aBuffer, size_t u64BytesReceived);
 
 			virtual void				OnPacketReceived(Packet& rPacket) = 0;
 
 		protected:
 			std::shared_ptr<TCPClient>	m_spTCPClient;
+			bool						m_bIsOpen = false;
 			std::vector<uint8_t>		m_vReceiveBuffer;
 			uint32_t					m_u32ReceiveBufferPosition = 0;
 		};

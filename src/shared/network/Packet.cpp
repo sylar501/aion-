@@ -21,7 +21,7 @@ namespace shared
 
 		uint32_t Packet::GetSize()
 		{
-			return m_vData.size();
+			return (uint32_t) m_vData.size();
 		}
 
 		void Packet::Reserve(uint32_t u32Size)
@@ -75,7 +75,7 @@ namespace shared
 			// Check whether the string defined by specified size is actually available in the packet.
 			// If not, read what's available.
 			if (m_u32Position + u32StringLength > m_vData.size())
-				u32StringLength = m_vData.size() - m_u32Position;
+				u32StringLength = (uint32_t) m_vData.size() - m_u32Position;
 
 			std::string strValue = std::string((char*)&m_vData[m_u32Position], u32StringLength);
 
@@ -98,7 +98,7 @@ namespace shared
 
 		void Packet::WriteString(const std::string& strValue)
 		{
-			uint32_t u32StringLength = strValue.length();
+			uint32_t u32StringLength = (uint32_t) strValue.length();
 
 			Write<uint32_t>(u32StringLength);
 			WriteBytes((uint8_t*)strValue.c_str(), u32StringLength);
