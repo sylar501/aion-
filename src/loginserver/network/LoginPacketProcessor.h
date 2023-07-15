@@ -4,16 +4,22 @@
 #include <shared/network/PacketProcessor.h>
 #include "LoginConnection.h"
 
-class LoginPacketProcessor : public shared::network::PacketProcessor
+namespace loginserver
 {
-public:
-	LoginPacketProcessor();
+	namespace network
+	{
+		class LoginPacketProcessor : public shared::network::PacketProcessor
+		{
+		public:
+			LoginPacketProcessor();
 
-	virtual void	ProcessPacket(shared::network::Packet* pPacket) override;
-private:
-	void			SendPacket_LoginFailed(LoginConnection* pConnection, uint8_t u8Reason);
-};
+			virtual void	ProcessPacket(shared::network::Packet* pPacket) override;
+		private:
+			void			SendPacket_LoginFailed(LoginConnection* pConnection, uint8_t u8Reason);
+		};
 
-extern LoginPacketProcessor sLoginPacketProcessor;
+		extern LoginPacketProcessor sLoginPacketProcessor;
+	}
+}
 
 #endif

@@ -10,69 +10,72 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-shared::Logger sLogger;
+shared::utilities::Logger sLogger;
 
 namespace shared
 {
-	void Logger::Debug(const char* szFormat, ...)
+	namespace utilities
 	{
-		va_list args;
-		va_start(args, szFormat);
-		Write(NULL, "DBG", szFormat, args);
-		va_end(args);
-	}
-
-	void Logger::Info(const char* szFormat, ...)
-	{
-		va_list args;
-		va_start(args, szFormat);
-		Write(ANSI_COLOR_GREEN, "INF", szFormat, args);
-		va_end(args);
-	}
-
-	void Logger::Warning(const char* szFormat, ...)
-	{
-		va_list args;
-		va_start(args, szFormat);
-		Write(ANSI_COLOR_YELLOW, "WRN", szFormat, args);
-		va_end(args);
-	}
-
-	void Logger::Error(const char* szFormat, ...)
-	{
-		va_list args;
-		va_start(args, szFormat);
-		Write(ANSI_COLOR_RED, "ERR", szFormat, args);
-		va_end(args);
-	}
-
-	void Logger::Write(const char* szColor, const char* szLevel, const char* szFormat, va_list args)
-	{
-		char szBuffer[1024] = { 0 };
-		char szTime[128] = { 0 };
-
-		int64_t i64Now = time(NULL);
-		strftime(szTime, sizeof(szTime), "%H:%M:%S", localtime(&i64Now));
-
-		if (szColor)
+		void Logger::Debug(const char* szFormat, ...)
 		{
-			snprintf(szBuffer, sizeof(szBuffer), "%s%s [%s] %s" ANSI_COLOR_RESET "\n", szColor, szTime, szLevel, szFormat);
-
-			m_mtx.lock();
-
-			vprintf(szBuffer, args);
-
-			m_mtx.unlock();
+			va_list args;
+			va_start(args, szFormat);
+			Write(NULL, "DBG", szFormat, args);
+			va_end(args);
 		}
-		else
+
+		void Logger::Info(const char* szFormat, ...)
 		{
-			snprintf(szBuffer, sizeof(szBuffer), "%s [%s] %s\n", szTime, szLevel, szFormat);
+			va_list args;
+			va_start(args, szFormat);
+			Write(ANSI_COLOR_GREEN, "INF", szFormat, args);
+			va_end(args);
+		}
 
-			m_mtx.lock();
+		void Logger::Warning(const char* szFormat, ...)
+		{
+			va_list args;
+			va_start(args, szFormat);
+			Write(ANSI_COLOR_YELLOW, "WRN", szFormat, args);
+			va_end(args);
+		}
 
-			vprintf(szBuffer, args);
+		void Logger::Error(const char* szFormat, ...)
+		{
+			va_list args;
+			va_start(args, szFormat);
+			Write(ANSI_COLOR_RED, "ERR", szFormat, args);
+			va_end(args);
+		}
 
-			m_mtx.unlock();
+		void Logger::Write(const char* szColor, const char* szLevel, const char* szFormat, va_list args)
+		{
+			char szBuffer[1024] = { 0 };
+			char szTime[128] = { 0 };
+
+			int64_t i64Now = time(NULL);
+			strftime(szTime, sizeof(szTime), "%H:%M:%S", localtime(&i64Now));
+
+			if (szColor)
+			{
+				snprintf(szBuffer, sizeof(szBuffer), "%s%s [%s] %s" ANSI_COLOR_RESET "\n", szColor, szTime, szLevel, szFormat);
+
+				m_mtx.lock();
+
+				vprintf(szBuffer, args);
+
+				m_mtx.unlock();
+			}
+			else
+			{
+				snprintf(szBuffer, sizeof(szBuffer), "%s [%s] %s\n", szTime, szLevel, szFormat);
+
+				m_mtx.lock();
+
+				vprintf(szBuffer, args);
+
+				m_mtx.unlock();
+			}
 		}
 	}
 }

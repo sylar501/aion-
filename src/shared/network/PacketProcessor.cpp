@@ -27,6 +27,8 @@ namespace shared
 
 		void PacketProcessor::Stop()
 		{
+			m_bContinue = false;
+
 			for (std::thread* pThread : m_vThreads)
 			{
 				pThread->join();

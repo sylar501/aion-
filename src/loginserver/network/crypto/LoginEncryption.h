@@ -5,21 +5,30 @@
 
 #include "Blowfish.h"
 
-class LoginEncryption
+namespace loginserver
 {
-public:
-	LoginEncryption();
+	namespace network
+	{
+		namespace crypto
+		{
+			class LoginEncryption
+			{
+			public:
+				LoginEncryption();
 
-	bool		Decrypt(uint8_t* aBuffer, size_t u64Length);
-	size_t		Encrypt(uint8_t* aBuffer, size_t u64Length);
+				bool		Decrypt(uint8_t* aBuffer, size_t u64Length);
+				size_t		Encrypt(uint8_t* aBuffer, size_t u64Length);
 
-	uint8_t*	GetBlowfishKey();
-private:
-	bool		m_bFirstPacket = true;
-	Blowfish	m_oBlowfish;
-	uint8_t		m_aBlowfishKey[16] = { 0 };
-};
+				uint8_t* GetBlowfishKey();
+			private:
+				bool		m_bFirstPacket = true;
+				Blowfish	m_oBlowfish;
+				uint8_t		m_aBlowfishKey[16] = { 0 };
+			};
 
-extern uint8_t sLoginEncryptionInitialKey[16];
+			extern uint8_t sLoginEncryptionInitialKey[16];
+		}
+	}
+}
 
 #endif

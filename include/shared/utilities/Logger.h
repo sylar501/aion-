@@ -6,22 +6,25 @@
 
 namespace shared
 {
-	class Logger
+	namespace utilities
 	{
-	public:
-		void		Debug(const char* szFormat, ...);
-		void		Info(const char* szFormat, ...);
-		void		Warning(const char* szFormat, ...);
-		void		Error(const char* szFormat, ...);
+		class Logger
+		{
+		public:
+			void		Debug(const char* szFormat, ...);
+			void		Info(const char* szFormat, ...);
+			void		Warning(const char* szFormat, ...);
+			void		Error(const char* szFormat, ...);
 
-	private:
-		void		Write(const char* szColor, const char* szLevel, const char* szFormat, va_list args);
+		private:
+			void		Write(const char* szColor, const char* szLevel, const char* szFormat, va_list args);
 
-	private:
-		std::mutex	m_mtx;
-	};
+		private:
+			std::mutex	m_mtx;
+		};
+	}
 }
 
-extern shared::Logger sLogger;
+extern shared::utilities::Logger sLogger;
 
 #endif
