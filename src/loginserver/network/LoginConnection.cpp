@@ -85,9 +85,49 @@ namespace loginserver
 
 					if (bCloseAfterSend)
 					{
-						CloseConnection();
+						ShutdownConnection();
 					}
 				}));
+		}
+
+		LoginConnection::ConnectionState LoginConnection::GetConnectionState()
+		{
+			return m_eConnectionState;
+		}
+
+		void LoginConnection::SetConnectionState(ConnectionState eConnectionState)
+		{
+			m_eConnectionState = eConnectionState;
+		}
+
+		uint32_t LoginConnection::GetSessionId()
+		{
+			return m_u32SessionId;
+		}
+
+		crypto::RSAKeyPair& LoginConnection::GetRSAKeyPair()
+		{
+			return m_oRSAKeyPair;
+		}
+
+		uint32_t LoginConnection::GetAccountId()
+		{
+			return m_u32AccountId;
+		}
+
+		void LoginConnection::SetAccountId(uint32_t u32AccountId)
+		{
+			m_u32AccountId = u32AccountId;
+		}
+
+		uint32_t LoginConnection::GetLoginTicket()
+		{
+			return m_u32LoginTicket;
+		}
+
+		void LoginConnection::SetLoginTicket(uint32_t u32LoginTicket)
+		{
+			m_u32LoginTicket = u32LoginTicket;
 		}
 	}
 }

@@ -18,7 +18,9 @@ namespace loginserver
 				Unknown,		// Connection object created but connection not yet handled.
 				Connected,		// Client just connected.
 				GameGuardOK,	// GameGuard authentication passed.
-				LoginOK			// Client logged in with username / password.
+				LoginOK,		// Client logged in with username / password.
+				ServerListSent,	// Server list has been sent to client.
+				ServerSelected,	// Player has selected a world server to connect to.
 			};
 
 		public:
@@ -32,17 +34,27 @@ namespace loginserver
 			void					OnPacketReceived(shared::network::Packet* pPacket);
 			void					SendPacket(shared::network::Packet* pPacket, bool bCloseAfterSend = false);
 
-			ConnectionState			GetConnectionState() { return m_eConnectionState; }
-			void					SetConnectionState(ConnectionState eConnectionState) { m_eConnectionState = eConnectionState; }
+			ConnectionState			GetConnectionState();
+			void					SetConnectionState(ConnectionState eConnectionState);
 
-			uint32_t				GetSessionId() { return m_u32SessionId; }
-			crypto::RSAKeyPair&		GetRSAKeyPair() { return m_oRSAKeyPair; }
+			uint32_t				GetSessionId();
+			crypto::RSAKeyPair&		GetRSAKeyPair();
+
+			uint32_t				GetAccountId();
+			void					SetAccountId(uint32_t u32AccountId);
+
+			uint32_t				GetLoginTicket();
+			void					SetLoginTicket(uint32_t u32LoginTicket);
 
 		private:
+			ConnectionState			m_eConnectionState = ConnectionState::Unknown;
+
 			crypto::LoginEncryption	m_oEncryption;
 			crypto::RSAKeyPair		m_oRSAKeyPair;
+			
 			uint32_t				m_u32SessionId = 0;
-			ConnectionState			m_eConnectionState = ConnectionState::Unknown;
+			uint32_t				m_u32AccountId = 0;
+			uint32_t				m_u32LoginTicket = 0;
 		};
 	}
 }

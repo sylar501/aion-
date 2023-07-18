@@ -27,17 +27,39 @@ namespace loginserver
 				return false;
 			}
 
+			try
+			{
+				m_oSharedDatabasePool.Initialize(2,
+					std::string("host=") + configuration::sLoginServerConfiguration.SHARED_DATABASE_HOST +
+					" port=" + configuration::sLoginServerConfiguration.SHARED_DATABASE_PORT +
+					" user=" + configuration::sLoginServerConfiguration.SHARED_DATABASE_USER +
+					" password=" + configuration::sLoginServerConfiguration.SHARED_DATABASE_PASSWORD +
+					" dbname=" + configuration::sLoginServerConfiguration.SHARED_DATABASE_NAME
+				);
+			}
+			catch (std::exception& ex)
+			{
+				sLogger.Error("Failed to connect to shared database: %s", ex.what());
+				return false;
+			}
+
 			return true;
 		}
 
 		void LoginDatabases::Shutdown()
 		{
 			m_oAccountsDatabasePool.Shutdown();
+			m_oSharedDatabasePool.Shutdown();
 		}
 
-		shared::database::pq_con_ptr LoginDatabases::GetAccountsDatabaseConnection()
+		shared::database::PSQLConnectionPool& LoginDatabases::GetAccountsDatabasePool()
 		{
-			return m_oAccountsDatabasePool.GetConnection();
+			return m_oAccountsDatabasePool;
+		}
+
+		shared::database::PSQLConnectionPool& LoginDatabases::GetSharedDatabasePool()
+		{
+			return m_oSharedDatabasePool;
 		}
 	}
 }

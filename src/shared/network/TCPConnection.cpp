@@ -14,8 +14,11 @@ namespace shared
 		void TCPConnection::OnConnect()
 		{
 			SetOpen(true);
+
 			m_vReceiveBuffer.resize(8192);
 			m_u32ReceiveBufferPosition = 0;
+
+			m_strClientAddress = m_spTCPClient->GetSocket().remote_endpoint().address().to_v4().to_string();
 		}
 
 		void TCPConnection::OnDisconnect()
@@ -27,6 +30,12 @@ namespace shared
 		{
 			SetOpen(false);
 			m_spTCPClient->GetSocket().close();
+		}
+
+		void TCPConnection::ShutdownConnection()
+		{
+			SetOpen(false);
+			m_spTCPClient->GetSocket().shutdown(asio::ip::tcp::socket::shutdown_both);
 		}
 
 		bool TCPConnection::IsOpen()
@@ -44,6 +53,11 @@ namespace shared
 				// Remove it from Server List.
 				m_spTCPClient->GetServer()->RemoveClientConnection(this);
 			}
+		}
+
+		std::string TCPConnection::GetClientAddress()
+		{
+			return m_strClientAddress;
 		}
 
 		void TCPConnection::OnBytesReceived(uint8_t* aBuffer, size_t u64BytesReceived)

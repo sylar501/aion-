@@ -27,6 +27,12 @@ namespace loginserver
 					ACCOUNTS_DATABASE_USER = oJSON["database"]["accounts"]["user"];
 					ACCOUNTS_DATABASE_PASSWORD = oJSON["database"]["accounts"]["password"];
 					ACCOUNTS_DATABASE_NAME = oJSON["database"]["accounts"]["name"];
+
+					SHARED_DATABASE_HOST = oJSON["database"]["shared"]["host"];
+					SHARED_DATABASE_PORT = oJSON["database"]["shared"]["port"];
+					SHARED_DATABASE_USER = oJSON["database"]["shared"]["user"];
+					SHARED_DATABASE_PASSWORD = oJSON["database"]["shared"]["password"];
+					SHARED_DATABASE_NAME = oJSON["database"]["shared"]["name"];
 				}
 				catch (std::exception& ex)
 				{
@@ -34,6 +40,8 @@ namespace loginserver
 					return false;
 				}
 			}
+
+			return true;
 		}
 	}
 }

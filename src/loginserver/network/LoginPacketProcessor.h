@@ -16,6 +16,7 @@ namespace loginserver
 			virtual void	ProcessPacket(shared::network::Packet* pPacket) override;
 		private:
 			void			SendPacket_LoginFailed(LoginConnection* pConnection, uint8_t u8Reason);
+			void			SendPacket_PlayFailed(LoginConnection* pConnection, uint8_t u8Reason);
 		};
 
 		extern LoginPacketProcessor sLoginPacketProcessor;

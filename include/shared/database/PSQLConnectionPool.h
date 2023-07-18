@@ -1,7 +1,7 @@
 #ifndef AION_SHARED_DATABASE_PSQLCONNECTIONPOOL_H
 #define AION_SHARED_DATABASE_PSQLCONNECTIONPOOL_H
 
-#include <pqxx/connection>
+#include <pqxx/pqxx>
 #include <memory>
 #include <unordered_map>
 #include <deque>

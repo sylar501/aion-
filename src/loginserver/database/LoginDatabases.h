@@ -13,9 +13,11 @@ namespace loginserver
 			bool Initialize();
 			void Shutdown();
 
-			shared::database::pq_con_ptr			GetAccountsDatabaseConnection();
+			shared::database::PSQLConnectionPool&	GetAccountsDatabasePool();
+			shared::database::PSQLConnectionPool&	GetSharedDatabasePool();
 		private:
 			shared::database::PSQLConnectionPool	m_oAccountsDatabasePool;
+			shared::database::PSQLConnectionPool	m_oSharedDatabasePool;
 		};
 
 		extern LoginDatabases sLoginDatabases;

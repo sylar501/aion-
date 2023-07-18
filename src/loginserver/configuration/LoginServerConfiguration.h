@@ -18,6 +18,13 @@ namespace loginserver
 			std::string		ACCOUNTS_DATABASE_USER;
 			std::string		ACCOUNTS_DATABASE_PASSWORD;
 			std::string		ACCOUNTS_DATABASE_NAME;
+
+			// Shared Database.
+			std::string		SHARED_DATABASE_HOST;
+			std::string		SHARED_DATABASE_PORT;
+			std::string		SHARED_DATABASE_USER;
+			std::string		SHARED_DATABASE_PASSWORD;
+			std::string		SHARED_DATABASE_NAME;
 		};
 
 		extern LoginServerConfiguration sLoginServerConfiguration;

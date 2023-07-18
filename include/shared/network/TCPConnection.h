@@ -23,9 +23,12 @@ namespace shared
 			virtual void				OnDisconnect();
 
 			void						CloseConnection();
+			void						ShutdownConnection();
 
 			bool						IsOpen();
 			void						SetOpen(bool bOpen);
+
+			std::string					GetClientAddress();
 
 			void						OnBytesReceived(uint8_t* aBuffer, size_t u64BytesReceived);
 
@@ -36,6 +39,7 @@ namespace shared
 			bool						m_bIsOpen = false;
 			std::vector<uint8_t>		m_vReceiveBuffer;
 			uint32_t					m_u32ReceiveBufferPosition = 0;
+			std::string					m_strClientAddress;
 		};
 	}
 }
