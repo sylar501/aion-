@@ -21,30 +21,30 @@ namespace shared
 			TCPClient(asio::ip::tcp::socket oSocket);
 			~TCPClient();
 
-			asio::ip::tcp::socket&		GetSocket();
-			TCPConnection*				GetConnection();
+			asio::ip::tcp::socket&			GetSocket();
+			std::shared_ptr<TCPConnection>	GetConnection();
 
-			void						Start(TCPConnection* pConnection);
+			void							Start(std::shared_ptr<TCPConnection> spConnection);
 
-			TCPServer*					GetServer();
-			void						SetServer(TCPServer* pServer);
+			TCPServer*						GetServer();
+			void							SetServer(TCPServer* pServer);
 
-			asio::io_context::strand&	GetSendStrand();
-
-		private:
-			void						BeginRead();
+			asio::io_context::strand&		GetSendStrand();
 
 		private:
-			asio::ip::tcp::socket		m_oSocket;
+			void							BeginRead();
 
-			uint8_t						m_aReceiveBuffer[RECEIVE_BUFFER_SIZE] = { 0 };
-			asio::mutable_buffer		m_oReceiveBuffer;
+		private:
+			asio::ip::tcp::socket			m_oSocket;
 
-			asio::io_context::strand	m_oReceiveStrand;
-			asio::io_context::strand	m_oSendStrand;
+			uint8_t							m_aReceiveBuffer[RECEIVE_BUFFER_SIZE] = { 0 };
+			asio::mutable_buffer			m_oReceiveBuffer;
 
-			TCPConnection*				m_pConnection = nullptr;
-			TCPServer*					m_pServer = nullptr;
+			asio::io_context::strand		m_oReceiveStrand;
+			asio::io_context::strand		m_oSendStrand;
+
+			std::shared_ptr<TCPConnection>	m_spConnection = nullptr;
+			TCPServer*						m_pServer = nullptr;
 		};
 	}
 }

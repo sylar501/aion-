@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdint.h>
 #include <string>
+#include <memory>
 
 namespace shared
 {
@@ -15,27 +16,27 @@ namespace shared
 		{
 		public:
 			Packet();
-			~Packet();
+			virtual ~Packet();
 
-			uint8_t*				GetDataPtr();
-			uint32_t				GetSize();
+			uint8_t*						GetDataPtr();
+			uint32_t						GetSize();
 
 			// Increases the total number of bytes that the packet can hold without requiring reallocation.
-			void					Reserve(uint32_t u32Size);
+			void							Reserve(uint32_t u32Size);
 
 			// Forcefully resize the packet storage to the specified size.
-			void					Resize(uint32_t u32Size);
+			void							Resize(uint32_t u32Size);
 
 			// Writes a string representation of this packet's contents to the standard output.
-			void					HexDump();
+			void							HexDump();
 
 			// Sets the read/write position within this packet.
-			uint32_t				GetPosition();
+			uint32_t						GetPosition();
 			// Returns the read/write position within this packet.
-			void					SetPosition(uint32_t u32Position);
+			void							SetPosition(uint32_t u32Position);
 
 			template<typename T>
-			T						Read()
+			T								Read()
 			{
 				// Check that we have enough data to read the specified type.
 				if (m_u32Position + sizeof(T) > m_vData.size())
@@ -46,30 +47,30 @@ namespace shared
 			}
 
 			// Reads a string from the packet in AION format.
-			std::string				ReadString();
+			std::string						ReadString();
 
 			template<typename T>
-			void					Write(T val)
+			void							Write(T val)
 			{
 				WriteBytes((uint8_t*) &val, sizeof(T));
 			}
 
 			// Writes the specified bytes into the packet, reallocating memory if required.
-			void					WriteBytes(uint8_t* pBytes, uint32_t u32Length);
+			void							WriteBytes(uint8_t* pBytes, uint32_t u32Length);
 
 			// Writes the specified string into the packet in AION format.
-			void					WriteString(const std::string& strValue);
+			void							WriteString(const std::string& strValue);
 
 			// Writes the specified amount of zeroes into the packet.
-			void					WriteZeroes(uint32_t u32Count);
+			void							WriteZeroes(uint32_t u32Count);
 
-			TCPConnection*			GetConnection();
-			void					SetConnection(TCPConnection* pConnection);
+			std::shared_ptr<TCPConnection>	GetConnection();
+			void							SetConnection(std::shared_ptr<TCPConnection> spConnection);
 
 		protected:
-			std::vector<uint8_t>	m_vData;
-			uint32_t				m_u32Position = 0;
-			TCPConnection*			m_pConnection = nullptr;
+			std::vector<uint8_t>			m_vData;
+			uint32_t						m_u32Position = 0;
+			std::shared_ptr<TCPConnection>	m_spConnection = nullptr;
 		};
 	}
 }

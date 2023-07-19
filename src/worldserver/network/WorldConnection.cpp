@@ -31,8 +31,12 @@ namespace worldserver
 
 			m_eConnectionState = ConnectionState::Connected;
 
-			// Make Init Packet.
-			//SendPacket(pInitPacket);
+			// Make Init Packet.			
+			WorldPacket* pInitPacket = new WorldPacket(0x48);
+
+			pInitPacket->Write<uint32_t>((m_oEncryption.GetBaseKey() ^ 0xCD92E451) + 0x3FF2CC87);
+
+			SendPacket(pInitPacket);
 		}
 
 		void WorldConnection::OnDisconnect()
@@ -45,36 +49,44 @@ namespace worldserver
 		void WorldConnection::OnPacketReceived(shared::network::Packet* pPacket)
 		{
 			// Decrypt Message.
-			//m_oEncryption.Decrypt(pPacket->GetDataPtr(), pPacket->GetSize());
-
-			// Handle Packet.
-			pPacket->SetPosition(0);
-			sWorldPacketProcessor.EnqueuePacket(pPacket);
+			if (m_oEncryption.Decrypt(pPacket->GetDataPtr(), pPacket->GetSize()))
+			{
+				// Handle Packet.
+				pPacket->SetPosition(0);
+				sWorldPacketProcessor.EnqueuePacket(pPacket);
+			}
+			else
+			{
+				sLogger.Error("WorldConnection::OnPacketReceived > Failed to validate client packet!");
+			}
 		}
 
-		void WorldConnection::SendPacket(shared::network::Packet* pPacket, bool bCloseAfterSend)
+		void WorldConnection::SendPacket(WorldPacket* pPacket, bool bCloseAfterSend)
 		{
-			/*pPacket->Resize(pPacket->GetPosition() + 4 + 8 - pPacket->GetPosition() % 8);
+			m_oEncryption.Encrypt(pPacket->GetDataPtr() + 2, pPacket->GetPosition() - 4);
 
-			size_t u64Size = m_oEncryption.Encrypt(pPacket->GetDataPtr() + 2, pPacket->GetPosition() - 4) + 2;
+			uint64_t u64PacketSize = pPacket->GetPosition();
 
 			pPacket->SetPosition(0);
-			pPacket->Write<uint16_t>((uint16_t)u64Size);*/
+			pPacket->Write<uint16_t>((uint16_t)u64PacketSize);
 
-			m_spTCPClient->GetSocket().async_send(asio::buffer(pPacket->GetDataPtr(), pPacket->GetSize()), asio::bind_executor(m_spTCPClient->GetSendStrand(), [pPacket, bCloseAfterSend, this](std::error_code ec, size_t /* bytesTransferred */)
-				{
-					delete pPacket;
-
-					if (ec)
+			if (IsOpen())
+			{
+				m_spTCPClient->GetSocket().async_send(asio::buffer(pPacket->GetDataPtr(), u64PacketSize), asio::bind_executor(m_spTCPClient->GetSendStrand(), [pPacket, bCloseAfterSend, this](std::error_code ec, size_t /* bytesTransferred */)
 					{
-						sLogger.Error("WorldConnection(0x%x)::Send > %s", this, ec.message().c_str());
-					}
+						delete pPacket;
 
-					if (bCloseAfterSend)
-					{
-						CloseConnection();
-					}
-				}));
+						if (ec)
+						{
+							sLogger.Error("WorldConnection(0x%x)::Send > %s", this, ec.message().c_str());
+						}
+
+						if (bCloseAfterSend)
+						{
+							ShutdownConnection();
+						}
+					}));
+			}
 		}
 	}
 }

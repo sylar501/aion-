@@ -6,6 +6,7 @@
 #include <shared/network/ASIOThreadPool.h>
 #include "network/WorldConnection.h"
 #include "network/WorldPacketProcessor.h"
+#include "configuration/WorldServerConfiguration.h"
 
 int main(int /* argc */, char** /* argv */)
 {
@@ -24,6 +25,12 @@ int main(int /* argc */, char** /* argv */)
 
 	try
 	{
+		// Load Configuration.
+		if (!worldserver::configuration::sWorldServerConfiguration.Load())
+		{
+			throw std::runtime_error("Failed to load configuration, cannot continue ...");
+		}
+
 		// Network Initialization.
 		// Start ASIO Thread Pool.
 		shared::network::ASIOThreadPool::GetInstance()->SetThreadCount(1);
@@ -33,7 +40,7 @@ int main(int /* argc */, char** /* argv */)
 		worldserver::network::sWorldPacketProcessor.Start();
 
 		// Start Login TCP Server.
-		shared::network::TCPServer oTCPServer("127.0.0.1", 6667);
+		shared::network::TCPServer oTCPServer("127.0.0.1", 10250);
 		oTCPServer.SetConnectionPrototype(new worldserver::network::WorldConnection());
 		oTCPServer.Start();
 

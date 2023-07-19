@@ -25,9 +25,12 @@ namespace loginserver
 
 		void LoginPacketProcessor::ProcessPacket(shared::network::Packet* pPacket)
 		{
-			uint8_t u8Opcode = pPacket->Read<uint8_t>();
-			LoginConnection* pConnection = (LoginConnection*)pPacket->GetConnection();
+			std::shared_ptr<LoginConnection> pConnection = std::dynamic_pointer_cast<LoginConnection>(pPacket->GetConnection());
 
+			if (!pConnection->IsOpen()) return;
+
+			uint8_t u8Opcode = pPacket->Read<uint8_t>();
+			
 			switch (u8Opcode)
 			{
 			case 0x07: // GameGuard Authentication.
@@ -242,7 +245,7 @@ namespace loginserver
 			}
 		}
 
-		void LoginPacketProcessor::SendPacket_LoginFailed(LoginConnection* pConnection, uint8_t u8Reason)
+		void LoginPacketProcessor::SendPacket_LoginFailed(std::shared_ptr<LoginConnection> pConnection, uint8_t u8Reason)
 		{
 			shared::network::Packet* pPacket = new shared::network::Packet();
 
@@ -252,7 +255,7 @@ namespace loginserver
 			pConnection->SendPacket(pPacket, true);
 		}
 
-		void LoginPacketProcessor::SendPacket_PlayFailed(LoginConnection* pConnection, uint8_t u8Reason)
+		void LoginPacketProcessor::SendPacket_PlayFailed(std::shared_ptr<LoginConnection> pConnection, uint8_t u8Reason)
 		{
 			shared::network::Packet* pPacket = new shared::network::Packet();
 

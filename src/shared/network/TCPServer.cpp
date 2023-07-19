@@ -44,11 +44,11 @@ namespace shared
 			return m_oClientSocket;
 		}
 
-		void TCPServer::RemoveClientConnection(TCPConnection* pConnection)
+		void TCPServer::RemoveClientConnection(std::shared_ptr<TCPConnection> spConnection)
 		{
 			m_mtxClientConnections.lock();
 			{
-				auto it = std::find(m_vClientConnections.begin(), m_vClientConnections.end(), pConnection);
+				auto it = std::find(m_vClientConnections.begin(), m_vClientConnections.end(), spConnection);
 
 				if (it != m_vClientConnections.end())
 				{
@@ -72,18 +72,18 @@ namespace shared
 					std::shared_ptr<TCPClient> spNewClient = std::make_shared<TCPClient>(std::move(m_oClientSocket));
 
 					// Create TCPConnection.
-					TCPConnection* pNewConnection = m_pConnectionPrototype->Create();
+					std::shared_ptr<TCPConnection> spNewConnection(m_pConnectionPrototype->Create());
 
 					// Store Connection.
 					m_mtxClientConnections.lock();
 					{
-						m_vClientConnections.push_back(pNewConnection);
+						m_vClientConnections.push_back(spNewConnection);
 					}
 					m_mtxClientConnections.unlock();
 
 					// Start TCPClient work.
 					spNewClient->SetServer(this);
-					spNewClient->Start(pNewConnection);
+					spNewClient->Start(spNewConnection);
 
 					BeginAccept();
 				}

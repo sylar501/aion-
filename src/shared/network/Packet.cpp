@@ -89,7 +89,7 @@ namespace shared
 			size_t u64Size = m_vData.size();
 
 			if (m_u32Position + u32Length > u64Size)
-				m_vData.resize(u64Size + u32Length);
+				m_vData.resize(m_u32Position + u32Length);
 
 			memcpy(&m_vData[m_u32Position], pBytes, u32Length);
 
@@ -118,14 +118,14 @@ namespace shared
 			m_u32Position += u32Count;
 		}
 
-		TCPConnection* Packet::GetConnection()
+		std::shared_ptr<TCPConnection> Packet::GetConnection()
 		{
-			return m_pConnection;
+			return m_spConnection;
 		}
 
-		void Packet::SetConnection(TCPConnection* pConnection)
+		void Packet::SetConnection(std::shared_ptr<TCPConnection> spConnection)
 		{
-			m_pConnection = pConnection;
+			m_spConnection = spConnection;
 		}
 	}
 }

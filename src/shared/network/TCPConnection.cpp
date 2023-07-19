@@ -6,6 +6,11 @@ namespace shared
 {
 	namespace network
 	{
+		TCPConnection::~TCPConnection()
+		{
+
+		}
+
 		void TCPConnection::SetTCPClient(std::shared_ptr<TCPClient> spTCPClient)
 		{
 			m_spTCPClient = spTCPClient;
@@ -28,14 +33,20 @@ namespace shared
 
 		void TCPConnection::CloseConnection()
 		{
-			SetOpen(false);
-			m_spTCPClient->GetSocket().close();
+			if (m_bIsOpen)
+			{
+				SetOpen(false);
+				m_spTCPClient->GetSocket().close();
+			}
 		}
 
 		void TCPConnection::ShutdownConnection()
 		{
-			SetOpen(false);
-			m_spTCPClient->GetSocket().shutdown(asio::ip::tcp::socket::shutdown_both);
+			if (m_bIsOpen)
+			{
+				SetOpen(false);
+				m_spTCPClient->GetSocket().shutdown(asio::ip::tcp::socket::shutdown_both);
+			}
 		}
 
 		bool TCPConnection::IsOpen()
@@ -51,7 +62,7 @@ namespace shared
 			{
 				// Connection was just closed and made unavailable to the system.
 				// Remove it from Server List.
-				m_spTCPClient->GetServer()->RemoveClientConnection(this);
+				m_spTCPClient->GetServer()->RemoveClientConnection(shared_from_this());
 			}
 		}
 
@@ -62,6 +73,8 @@ namespace shared
 
 		void TCPConnection::OnBytesReceived(uint8_t* aBuffer, size_t u64BytesReceived)
 		{
+			if (!m_bIsOpen) return;
+
 			if (m_u32ReceiveBufferPosition + u64BytesReceived > m_vReceiveBuffer.size())
 			{
 				// The 8KB buffer is not sufficient to store the data.
@@ -87,7 +100,7 @@ namespace shared
 				pPacket->SetPosition(0);
 				pPacket->WriteBytes(&m_vReceiveBuffer[2], u16PacketSize - 2);
 				
-				pPacket->SetConnection(this);
+				pPacket->SetConnection(shared_from_this());
 
 				OnPacketReceived(pPacket);
 

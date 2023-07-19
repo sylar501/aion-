@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <memory>
+#include <mutex>
 
 #include <shared/network/Packet.h>
 
@@ -12,10 +13,12 @@ namespace shared
 	{
 		class TCPClient;
 
-		class TCPConnection
+		class TCPConnection : public std::enable_shared_from_this<TCPConnection>
 		{
 		public:
 			virtual TCPConnection* Create() = 0;
+
+			~TCPConnection();
 
 			void						SetTCPClient(std::shared_ptr<TCPClient> spTCPClient);
 

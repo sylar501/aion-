@@ -1,5 +1,5 @@
-#ifndef AION_LOGINSERVER_NETWORK_LOGINENCRYPTION_H
-#define AION_LOGINSERVER_NETWORK_LOGINENCRYPTION_H
+#ifndef AION_LOGINSERVER_NETWORK_CRYPTO_LOGINENCRYPTION_H
+#define AION_LOGINSERVER_NETWORK_CRYPTO_LOGINENCRYPTION_H
 
 #include <stdint.h>
 
@@ -19,7 +19,7 @@ namespace loginserver
 				bool		Decrypt(uint8_t* aBuffer, size_t u64Length);
 				size_t		Encrypt(uint8_t* aBuffer, size_t u64Length);
 
-				uint8_t* GetBlowfishKey();
+				uint8_t*	GetBlowfishKey();
 			private:
 				bool		m_bFirstPacket = true;
 				Blowfish	m_oBlowfish;

@@ -74,20 +74,23 @@ namespace loginserver
 			pPacket->SetPosition(0);
 			pPacket->Write<uint16_t>((uint16_t)u64Size);
 
-			m_spTCPClient->GetSocket().async_send(asio::buffer(pPacket->GetDataPtr(), u64Size), asio::bind_executor(m_spTCPClient->GetSendStrand(), [pPacket, bCloseAfterSend, this](std::error_code ec, size_t /* bytesTransferred */)
-				{
-					delete pPacket;
-
-					if (ec)
+			if (IsOpen())
+			{
+				m_spTCPClient->GetSocket().async_send(asio::buffer(pPacket->GetDataPtr(), u64Size), asio::bind_executor(m_spTCPClient->GetSendStrand(), [pPacket, bCloseAfterSend, this](std::error_code ec, size_t /* bytesTransferred */)
 					{
-						sLogger.Error("LoginConnection(0x%x)::Send > %s", this, ec.message().c_str());
-					}
+						delete pPacket;
 
-					if (bCloseAfterSend)
-					{
-						ShutdownConnection();
-					}
-				}));
+						if (ec)
+						{
+							sLogger.Error("LoginConnection(0x%x)::Send > %s", this, ec.message().c_str());
+						}
+
+						if (bCloseAfterSend)
+						{
+							ShutdownConnection();
+						}
+					}));
+			}
 		}
 
 		LoginConnection::ConnectionState LoginConnection::GetConnectionState()

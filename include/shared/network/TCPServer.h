@@ -9,7 +9,7 @@ namespace shared
 {
 	namespace network
 	{
-		typedef std::vector<TCPConnection*> ClientList;
+		typedef std::vector<std::shared_ptr<TCPConnection>> ClientList;
 
 		class TCPServer
 		{
@@ -22,7 +22,7 @@ namespace shared
 			void						SetConnectionPrototype(TCPConnection* pConnectionPrototype);
 			asio::ip::tcp::socket&		GetSocket();
 
-			void						RemoveClientConnection(TCPConnection* pConnection);
+			void						RemoveClientConnection(std::shared_ptr<TCPConnection> spConnection);
 
 		private:
 			void						BeginAccept();
@@ -38,7 +38,7 @@ namespace shared
 
 			TCPConnection*				m_pConnectionPrototype = nullptr;
 
-			std::vector<TCPConnection*> m_vClientConnections;
+			ClientList					m_vClientConnections;
 			std::mutex					m_mtxClientConnections;
 		};
 	}

@@ -18,7 +18,7 @@ namespace shared
 
 		TCPClient::~TCPClient()
 		{
-			delete m_pConnection;
+
 		}
 
 		void TCPClient::BeginRead()
@@ -30,13 +30,13 @@ namespace shared
 				if (ec)
 				{
 					// Disconnected by peer.
-					m_pConnection->SetOpen(false);
-					m_pConnection->OnDisconnect();
+					m_spConnection->SetOpen(false);
+					m_spConnection->OnDisconnect();
 				}
 				else
 				{
 					// Forward to Connection Object.
-					m_pConnection->OnBytesReceived(m_aReceiveBuffer, u64BytesReceived);
+					m_spConnection->OnBytesReceived(m_aReceiveBuffer, u64BytesReceived);
 
 					// Continue Read.
 					BeginRead();
@@ -49,18 +49,18 @@ namespace shared
 			return m_oSocket;
 		}
 
-		TCPConnection* TCPClient::GetConnection()
+		std::shared_ptr<TCPConnection> TCPClient::GetConnection()
 		{
-			return m_pConnection;
+			return m_spConnection;
 		}
 
-		void TCPClient::Start(TCPConnection* pConnection)
+		void TCPClient::Start(std::shared_ptr<TCPConnection> spConnection)
 		{
-			m_pConnection = pConnection;
+			m_spConnection = spConnection;
 
-			m_pConnection->SetTCPClient(shared_from_this());
+			m_spConnection->SetTCPClient(shared_from_this());
 
-			pConnection->OnConnect();
+			spConnection->OnConnect();
 
 			BeginRead();
 		}
