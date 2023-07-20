@@ -2,6 +2,7 @@
 #include "WorldConnection.h"
 
 #include "../configuration/WorldServerConfiguration.h"
+#include "../database/TicketsDAO.h"
 
 #include <shared/utilities/Logger.h>
 
@@ -24,6 +25,7 @@ namespace worldserver
 			if (!pConnection->IsOpen()) return;
 
 			uint16_t u16Opcode = pPacket->Read<uint16_t>();
+			pPacket->SetPosition(pPacket->GetPosition() + 3);
 			
 			switch (u16Opcode)
 			{
@@ -42,6 +44,7 @@ namespace worldserver
 			}
 			case 0xF1: // Client Soft Disconnection.
 			{
+				sLogger.Info("Soft Disconnection");
 				pConnection->ShutdownConnection();
 				break;
 			}
@@ -67,7 +70,7 @@ namespace worldserver
 				pResponse->Write<uint8_t>(2); // Country Code
 				pResponse->Write<uint8_t>(0);
 				
-				uint8_t u8CharacterCreationFlag = 2 * 0x10; // 2 characters max. TODO implement options here.
+				uint8_t u8CharacterCreationFlag = (24 * 0x10) | 1; // 2 characters max. TODO implement options here.
 				pResponse->Write<uint8_t>(u8CharacterCreationFlag);
 
 				pResponse->Write<uint32_t>((uint32_t)time(NULL));
@@ -93,11 +96,53 @@ namespace worldserver
 			}
 			case 0x104: // Authentication.
 			{
-				uint64_t u64GameAuthKey = pPacket->Read<uint64_t>();
+				if (pConnection->GetConnectionState() != WorldConnection::ConnectionState::Connected)
+				{
+					sLogger.Error("Received Authentication Packet while connection is in invalid state - client IP: %s",
+						pConnection->GetClientAddress().c_str());
+					return pConnection->CloseConnection();
+				}
+
+				// Read the World Ticket into a byte array first, since AION client sends it in a weird way ...
+				uint8_t aWorldTicketBytes[8];
+				pPacket->ReadBytes(&aWorldTicketBytes[4], 4);
+				pPacket->ReadBytes(aWorldTicketBytes, 4);
+
+				uint64_t u64WorldTicket = *((uint64_t*)aWorldTicketBytes);
+				
 				uint32_t u32AccountId = pPacket->Read<uint32_t>();
 				uint32_t u32LoginTicket = pPacket->Read<uint32_t>();
 
-				sLogger.Info("Game Auth: %lu - %u - %u", u64GameAuthKey, u32AccountId, u32LoginTicket);
+				if (!database::TicketsDAO::ValidateTickets(u32AccountId, u32LoginTicket, u64WorldTicket, configuration::sWorldServerConfiguration.WORLDSERVER_ID))
+				{
+					sLogger.Error("Failed to validate authentication tickets - client IP: %s", pConnection->GetClientAddress().c_str());
+					return SendPacket_AuthenticationResponse(pConnection, false, "");
+				}
+
+				pConnection->SetConnectionState(WorldConnection::ConnectionState::Authenticated);
+
+				SendPacket_AuthenticationResponse(pConnection, true, "");
+
+				break;
+			}
+			case 0x105: // Character List Request.
+			{
+				if (pConnection->GetConnectionState() != WorldConnection::ConnectionState::Authenticated)
+				{
+					sLogger.Error("Received Character List Request while connection is in invalid state - client IP: %s",
+						pConnection->GetClientAddress().c_str());
+					return pConnection->CloseConnection();
+				}
+
+				uint32_t u32Key = pPacket->Read<uint32_t>();
+
+
+
+				break;
+			}
+			case 0x12c: // TODO Client MAC Address
+			{
+				break;
 			}
 			default:
 			{
@@ -105,6 +150,16 @@ namespace worldserver
 				break;
 			}
 			}
+		}
+
+		void WorldPacketProcessor::SendPacket_AuthenticationResponse(std::shared_ptr<WorldConnection> pConnection, bool bResponse, const std::string& strAccountName)
+		{
+			WorldPacket* pPacket = new WorldPacket(0xC7);
+
+			pPacket->Write<uint32_t>(bResponse ? 0x00 : 0x01);
+			pPacket->WriteString(strAccountName);
+
+			pConnection->SendPacket(pPacket, !bResponse);
 		}
 	}
 }

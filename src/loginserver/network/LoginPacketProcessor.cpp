@@ -2,7 +2,7 @@
 #include "LoginConnection.h"
 
 #include "../database/AccountsDAO.h"
-#include "../database/AuthKeysDAO.h"
+#include "../database/TicketsDAO.h"
 #include "../database/WorldServersDAO.h"
 
 #include <shared/utilities/Logger.h>
@@ -214,10 +214,10 @@ namespace loginserver
 				}
 
 				// Generate Game Login Key, and store to database.
-				uint64_t u64GameAuthKey = 0;
-				RAND_bytes((uint8_t*)&u64GameAuthKey, 8);
+				uint64_t u64WorldTicket = 0;
+				RAND_bytes((uint8_t*)&u64WorldTicket, 8);
 
-				if (!database::AuthKeysDAO::SetAuthKeys(pConnection->GetAccountId(), pConnection->GetLoginTicket(), u64GameAuthKey))
+				if (!database::TicketsDAO::SetTickets(pConnection->GetAccountId(), pConnection->GetLoginTicket(), u64WorldTicket, u8ServerID))
 				{
 					return SendPacket_LoginFailed(pConnection, 1); // System Error.
 				}
@@ -226,7 +226,7 @@ namespace loginserver
 				shared::network::Packet* pResponse = new shared::network::Packet();
 
 				pResponse->Write<uint8_t>(0x07);
-				pResponse->Write<uint64_t>(u64GameAuthKey);
+				pResponse->Write<uint64_t>(u64WorldTicket);
 				pResponse->Write<uint8_t>(u8ServerID);
 
 				pResponse->WriteZeroes(0x0E);

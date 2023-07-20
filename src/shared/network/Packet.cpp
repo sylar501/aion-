@@ -65,6 +65,16 @@ namespace shared
 			m_u32Position = u32Position;
 		}
 
+		void Packet::ReadBytes(uint8_t* pBuffer, uint32_t u32Length)
+		{
+			// Check whether the specified amount of data is actually available in the packet.
+			if (m_u32Position + u32Length <= m_vData.size())
+			{
+				memcpy(pBuffer, &m_vData[m_u32Position], u32Length);
+				m_u32Position += u32Length;
+			}
+		}
+
 		std::string Packet::ReadString()
 		{
 			uint32_t u32StringLength = Read<uint32_t>();
@@ -101,9 +111,11 @@ namespace shared
 			uint32_t u32StringLength = (uint32_t) strValue.length();
 
 			Write<uint32_t>(u32StringLength);
-			WriteBytes((uint8_t*)strValue.c_str(), u32StringLength);
 
-			m_u32Position += u32StringLength;
+			if (u32StringLength > 0)
+			{
+				WriteBytes((uint8_t*)strValue.c_str(), u32StringLength);
+			}
 		}
 
 		void Packet::WriteZeroes(uint32_t u32Count)

@@ -46,6 +46,8 @@ namespace shared
 				return val;
 			}
 
+			void							ReadBytes(uint8_t* pBuffer, uint32_t u32Length);
+
 			// Reads a string from the packet in AION format.
 			std::string						ReadString();
 

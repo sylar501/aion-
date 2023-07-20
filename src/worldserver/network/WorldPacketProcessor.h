@@ -14,6 +14,8 @@ namespace worldserver
 			WorldPacketProcessor();
 
 			virtual void	ProcessPacket(shared::network::Packet* pPacket) override;
+		private:
+			void			SendPacket_AuthenticationResponse(std::shared_ptr<WorldConnection> pConnection, bool bResponse, const std::string& strAccountName);
 		};
 
 		extern WorldPacketProcessor sWorldPacketProcessor;

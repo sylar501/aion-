@@ -1,4 +1,4 @@
-#include "AuthKeysDAO.h"
+#include "TicketsDAO.h"
 #include "LoginDatabases.h"
 
 #include <shared/utilities/Logger.h>
@@ -7,7 +7,7 @@ namespace loginserver
 {
 	namespace database
 	{
-		bool AuthKeysDAO::SetAuthKeys(uint32_t u32AccountId, uint32_t u32LoginTicket, uint64_t u64GameAuthKey)
+		bool TicketsDAO::SetTickets(uint32_t u32AccountId, uint32_t u32LoginTicket, uint64_t u64WorldTicket, uint8_t u8WorldId)
 		{
 			bool bResult = false;
 
@@ -17,9 +17,9 @@ namespace loginserver
 
 				pqxx::work oTransaction(*spConnection.get());
 
-				oTransaction.conn().prepare("", "INSERT INTO auth_keys (account_id,login_ticket,game_auth_key) VALUES ($1,$2,$3) ON CONFLICT (account_id) DO UPDATE SET login_ticket = excluded.login_ticket, game_auth_key = excluded.game_auth_key");
+				oTransaction.conn().prepare("", "INSERT INTO tickets (account_id,login_ticket,world_ticket,world_id) VALUES ($1,$2,$3,$4) ON CONFLICT (account_id) DO UPDATE SET login_ticket = excluded.login_ticket, world_ticket = excluded.world_ticket, world_id = excluded.world_id");
 
-				pqxx::result oResult = oTransaction.exec_prepared0("", u32AccountId, u32LoginTicket, u64GameAuthKey);
+				pqxx::result oResult = oTransaction.exec_prepared0("", u32AccountId, u32LoginTicket, u64WorldTicket, (uint16_t)u8WorldId);
 
 				bResult = oResult.affected_rows() == 1;
 

@@ -63,12 +63,12 @@ namespace worldserver
 
 		void WorldConnection::SendPacket(WorldPacket* pPacket, bool bCloseAfterSend)
 		{
-			m_oEncryption.Encrypt(pPacket->GetDataPtr() + 2, pPacket->GetPosition() - 4);
-
-			uint64_t u64PacketSize = pPacket->GetPosition();
+			uint64_t u64PacketSize = pPacket->GetSize();
 
 			pPacket->SetPosition(0);
 			pPacket->Write<uint16_t>((uint16_t)u64PacketSize);
+
+			m_oEncryption.Encrypt(pPacket->GetDataPtr() + 2, u64PacketSize - 2);
 
 			if (IsOpen())
 			{

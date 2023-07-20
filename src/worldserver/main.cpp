@@ -7,6 +7,7 @@
 #include "network/WorldConnection.h"
 #include "network/WorldPacketProcessor.h"
 #include "configuration/WorldServerConfiguration.h"
+#include "database/WorldDatabases.h"
 
 int main(int /* argc */, char** /* argv */)
 {
@@ -29,6 +30,12 @@ int main(int /* argc */, char** /* argv */)
 		if (!worldserver::configuration::sWorldServerConfiguration.Load())
 		{
 			throw std::runtime_error("Failed to load configuration, cannot continue ...");
+		}
+
+		// Connect to databases.
+		if (!worldserver::database::sWorldDatabases.Initialize())
+		{
+			throw std::runtime_error("Failed to connect to databases, cannot continue ...");
 		}
 
 		// Network Initialization.
