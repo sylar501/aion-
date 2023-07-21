@@ -67,7 +67,7 @@ namespace loginserver
 
 				break;
 			}
-			case 0x0B:
+			case 0x0B: // Authentication
 			{
 				if (pConnection->GetConnectionState() != LoginConnection::ConnectionState::GameGuardOK)
 					return pConnection->CloseConnection();
@@ -125,12 +125,11 @@ namespace loginserver
 
 				break;
 			}
-			case 0x05:
+			case 0x05: // Server List Request.
 			{
 				if (pConnection->GetConnectionState() != LoginConnection::ConnectionState::LoginOK)
 					return pConnection->CloseConnection();
 
-				// Server List Request.
 				uint32_t u32AccountId = pPacket->Read<uint32_t>();
 				uint32_t u32LoginTicket = pPacket->Read<uint32_t>();
 
@@ -191,12 +190,11 @@ namespace loginserver
 
 				break;
 			}
-			case 0x02:
+			case 0x02: // Select Server for Play.
 			{
 				if (pConnection->GetConnectionState() != LoginConnection::ConnectionState::ServerListSent)
 					return pConnection->CloseConnection();
 
-				// Select Server for Play.
 				uint32_t u32AccountId = pPacket->Read<uint32_t>();
 				uint32_t u32LoginTicket = pPacket->Read<uint32_t>();
 				uint8_t u8ServerID = pPacket->Read<uint8_t>();
@@ -234,6 +232,37 @@ namespace loginserver
 				pConnection->SendPacket(pResponse);
 
 				pConnection->SetConnectionState(LoginConnection::ConnectionState::ServerSelected);
+
+				break;
+			}
+			case 0x08: // Reconnection from World Server.
+			{
+				if (pConnection->GetConnectionState() != LoginConnection::ConnectionState::Connected)
+					return pConnection->CloseConnection();
+
+				uint32_t u32AccountId = pPacket->Read<uint32_t>();
+				pPacket->Read<uint32_t>();
+				uint32_t u32LoginTicket = pPacket->Read<uint32_t>();
+
+				if (!database::TicketsDAO::ValidateLoginTicket(u32AccountId, u32LoginTicket))
+				{
+					sLogger.Error("Reconnection from World Server for account %u with invalid Login Ticket %u - client IP: %s", 
+						u32AccountId, u32LoginTicket, pConnection->GetClientAddress().c_str());
+					return pConnection->CloseConnection();
+				}
+
+				pConnection->SetAccountId(u32AccountId);
+				pConnection->SetLoginTicket(u32LoginTicket);
+				pConnection->SetConnectionState(LoginConnection::ConnectionState::LoginOK);
+
+				shared::network::Packet* pPacket = new shared::network::Packet();
+
+				pPacket->Write<uint8_t>(0x0c);
+				pPacket->Write<uint32_t>(u32AccountId);
+				pPacket->Write<uint32_t>(u32LoginTicket);
+				pPacket->Write<uint8_t>(0);
+
+				pConnection->SendPacket(pPacket);
 
 				break;
 			}

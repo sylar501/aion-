@@ -88,5 +88,25 @@ namespace worldserver
 					}));
 			}
 		}
+
+		uint32_t WorldConnection::GetAccountId()
+		{
+			return m_u32AccountId;
+		}
+
+		void WorldConnection::SetAccountId(uint32_t u32AccountId)
+		{
+			m_u32AccountId = u32AccountId;
+		}
+
+		void WorldConnection::SendPacket_Quit(bool bEditMode, bool bCloseAfterSend)
+		{
+			WorldPacket* pPacket = new WorldPacket(0x62);
+
+			pPacket->Write<uint32_t>(bEditMode ? 2 : 1);
+			pPacket->Write<uint8_t>(0);
+
+			SendPacket(pPacket);
+		}
 	}
 }

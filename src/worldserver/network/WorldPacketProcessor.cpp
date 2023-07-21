@@ -6,6 +6,8 @@
 
 #include <shared/utilities/Logger.h>
 
+#include <openssl/rand.h>
+
 namespace worldserver
 {
 	namespace network
@@ -37,6 +39,16 @@ namespace worldserver
 
 				pResponse->Write<uint32_t>((uint32_t)time(NULL));
 				pResponse->Write<uint32_t>(u32ClientTime);
+
+				pConnection->SendPacket(pResponse);
+
+				break;
+			}
+			case 0x9F: // Client Ping
+			{
+				WorldPacket* pResponse = new WorldPacket(0x8E);
+
+				pResponse->Write<uint16_t>(0);
 
 				pConnection->SendPacket(pResponse);
 
@@ -94,6 +106,14 @@ namespace worldserver
 
 				break;
 			}
+			case 0xF6: // Client Quit Request.
+			{
+				bool bLogOut = pPacket->Read<uint8_t>() == 1;
+
+				pConnection->SendPacket_Quit(false, !bLogOut);
+
+				break;
+			}
 			case 0x104: // Authentication.
 			{
 				if (pConnection->GetConnectionState() != WorldConnection::ConnectionState::Connected)
@@ -119,6 +139,7 @@ namespace worldserver
 					return SendPacket_AuthenticationResponse(pConnection, false, "");
 				}
 
+				pConnection->SetAccountId(u32AccountId);
 				pConnection->SetConnectionState(WorldConnection::ConnectionState::Authenticated);
 
 				SendPacket_AuthenticationResponse(pConnection, true, "");
@@ -136,7 +157,44 @@ namespace worldserver
 
 				uint32_t u32Key = pPacket->Read<uint32_t>();
 
+				// Send Character List.
+				WorldPacket* pResponse = new WorldPacket(0xC8);
 
+				pResponse->Write<uint32_t>(u32Key);
+
+				pResponse->Write<uint8_t>(0); // Number of Characters.
+				// foreach Player
+				
+				// endforeach
+
+				pConnection->SendPacket(pResponse);
+
+				break;
+			}
+			case 0x12a: // Select Server Request.
+			{
+				if (pConnection->GetConnectionState() != WorldConnection::ConnectionState::Authenticated)
+				{
+					sLogger.Error("Received Select Server Request while connection is in invalid state - client IP: %s",
+						pConnection->GetClientAddress().c_str());
+					return pConnection->CloseConnection();
+				}
+
+				// Generate a new Login Ticket.
+				uint32_t u32LoginTicket;
+				RAND_bytes((uint8_t*)&u32LoginTicket, 4);
+
+				if (!database::TicketsDAO::SetLoginTicket(pConnection->GetAccountId(), u32LoginTicket))
+				{
+					return pConnection->CloseConnection();
+				}
+
+				WorldPacket* pPacket = new WorldPacket(0xFF);
+
+				pPacket->Write<uint8_t>(0);
+				pPacket->Write<uint32_t>(u32LoginTicket);
+
+				pConnection->SendPacket(pPacket);
 
 				break;
 			}

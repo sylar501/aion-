@@ -11,6 +11,7 @@ namespace loginserver
 		{
 		public:
 			static bool SetTickets(uint32_t u32AccountId, uint32_t u32LoginTicket, uint64_t u64WorldTicket, uint8_t u8WorldId);
+			static bool ValidateLoginTicket(uint32_t u32AccountId, uint32_t u32LoginTicket);
 		};
 	}
 }

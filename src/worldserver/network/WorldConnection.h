@@ -11,6 +11,8 @@ namespace worldserver
 	{
 		class WorldConnection : public shared::network::TCPConnection
 		{
+			friend class WorldPacketProcessor;
+
 		public:
 			enum class ConnectionState
 			{
@@ -36,10 +38,19 @@ namespace worldserver
 
 			uint32_t				GetSessionId() { return m_u32SessionId; }
 
+			uint32_t				GetAccountId();
+			void					SetAccountId(uint32_t u32AccountId);
+
+			void					SendPacket_Quit(bool bEditMode = false, bool bCloseAfterSend = false);
+
+		private:
+			void					writePlayerInfomation(WorldPacket* pPacket);
+
 		private:
 			uint32_t				m_u32SessionId = 0;
 			ConnectionState			m_eConnectionState = ConnectionState::Unknown;
 			crypto::WorldEncryption	m_oEncryption;
+			uint32_t				m_u32AccountId = 0;
 		};
 	}
 }

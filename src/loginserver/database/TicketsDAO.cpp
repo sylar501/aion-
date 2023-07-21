@@ -32,7 +32,35 @@ namespace loginserver
 			}
 			catch (std::exception& ex)
 			{
-				sLogger.Error("AuthKeysDAO::SetAuthKeys > %s", ex.what());
+				sLogger.Error("TicketsDAO::SetTickets > %s", ex.what());
+
+				bResult = false;
+			}
+
+			return bResult;
+		}
+
+		bool TicketsDAO::ValidateLoginTicket(uint32_t u32AccountId, uint32_t u32LoginTicket)
+		{
+			bool bResult = false;
+
+			try
+			{
+				shared::database::pq_con_ptr spConnection = sLoginDatabases.GetSharedDatabasePool().GetConnection();
+
+				pqxx::work oTransaction(*spConnection.get());
+
+				oTransaction.conn().prepare("", "SELECT COUNT(*) FROM tickets WHERE account_id = $1 AND login_ticket = $2");
+
+				pqxx::row oRow = oTransaction.exec_prepared1("", u32AccountId, u32LoginTicket);
+
+				bResult = oRow.at(0).as<uint32_t>() == 1;
+
+				sLoginDatabases.GetSharedDatabasePool().FreeConnection(spConnection);
+			}
+			catch (std::exception& ex)
+			{
+				sLogger.Error("TicketsDAO::ValidateLoginTicket > %s", ex.what());
 
 				bResult = false;
 			}

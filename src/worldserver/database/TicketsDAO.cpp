@@ -27,7 +27,40 @@ namespace worldserver
 			}
 			catch (std::exception& ex)
 			{
-				sLogger.Error("WorldServersDAO::IsWorldServerAvailable > %s", ex.what());
+				sLogger.Error("TicketsDAO::ValidateTickets > %s", ex.what());
+
+				bResult = false;
+			}
+
+			return bResult;
+		}
+
+		bool TicketsDAO::SetLoginTicket(uint32_t u32AccountId, uint32_t u32LoginTicket)
+		{
+			bool bResult = false;
+
+			try
+			{
+				shared::database::pq_con_ptr spConnection = sWorldDatabases.GetSharedDatabasePool().GetConnection();
+
+				pqxx::work oTransaction(*spConnection.get());
+
+				oTransaction.conn().prepare("", "UPDATE tickets SET login_ticket = $1 WHERE account_id = $2");
+
+				pqxx::result oResult = oTransaction.exec_prepared("", u32LoginTicket, u32AccountId);
+
+				bResult = oResult.affected_rows() == 1;
+
+				if (bResult)
+				{
+					oTransaction.commit();
+				}
+
+				sWorldDatabases.GetSharedDatabasePool().FreeConnection(spConnection);
+			}
+			catch (std::exception& ex)
+			{
+				sLogger.Error("TicketsDAO::SetLoginTicket > %s", ex.what());
 
 				bResult = false;
 			}

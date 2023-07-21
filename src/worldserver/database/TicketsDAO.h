@@ -11,6 +11,7 @@ namespace worldserver
 		{
 		public:
 			static bool ValidateTickets(uint32_t u32AccountId, uint32_t u32LoginTicket, uint64_t u64WorldTicket, uint8_t u8WorldId);
+			static bool SetLoginTicket(uint32_t u32AccountId, uint32_t u32LoginTicket);
 		};
 	}
 }
